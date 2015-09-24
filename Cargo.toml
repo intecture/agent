@@ -1,0 +1,22 @@
+[package]
+
+name = "intecture-agent"
+version = "0.0.1"
+authors = [ "Peter Hayes <peter.hayes@betweenlines.co.uk>" ]
+license = "Apache-2.0"
+description = "Agent component for Intecture infrastructure. Intecture is the developer friendly, multi-lingual configuration management tool."
+keywords = ["intecture", "agent"]
+homepage = "https://intecture.io"
+repository = "https://github.com/betweenlines/intecture-agent"
+
+[[bin]]
+
+name = "inagent"
+
+[dependencies]
+
+rustc-serialize = "0.3.*"
+
+[dependencies.zmq]
+
+git = "https://github.com/erickt/rust-zmq.git"
