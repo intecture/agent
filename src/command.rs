@@ -12,3 +12,17 @@ use std::io;
 pub fn exec<'a>(cmd: &str) -> io::Result<Output> {
     Command::new("sh").arg("-c").arg(cmd).output()
 }
+
+#[cfg(test)]
+mod tests {
+    use std::process::Command;
+
+    #[test]
+    fn exec() {
+        let cmd = super::exec("whoami").unwrap();
+        let user = Command::new("whoami").output().unwrap();
+
+        assert_eq!(cmd.status.code().unwrap(), 0);
+        assert_eq!(String::from_utf8(cmd.stdout).unwrap(), String::from_utf8(user.stdout).unwrap());
+    }
+}

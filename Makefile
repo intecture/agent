@@ -36,5 +36,8 @@ uninstall:
 		rmdir $(ETCPATH)/intecture; \\
 	fi
 
+test:
+	$(CARGO) test
+
 clean:
 	$(CARGO) clean

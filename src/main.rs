@@ -72,8 +72,8 @@ fn run(ctx: &mut zmq::Context) {
 }
 
 /// Receive a variable number of args from sock. We expect the number
-/// of args from sock to match num.
-/// If num = 0 then we allow a variable number of args.
+/// of args from `sock` to be between `min` and `max`.
+/// If max = 0 then we allow a variable number of args.
 fn recv_args(sock: &mut zmq::Socket, min: u8, max: u8) -> Result<Vec<String>, AgentError> {
     let mut args: Vec<String> = vec![];
     let mut counter = 0;
@@ -155,4 +155,150 @@ pub enum RootError {
 fn print_err(e: &AgentError) {
     println!("{}", e.message);
     println!("{:?}", e.root);
+}
+
+#[cfg(test)]
+mod tests {
+    use zmq;
+
+    /// Test providing 1 and only 1 arg
+    #[test]
+    fn recv_args_ok_eq() {
+        let mut ctx = zmq::Context::new();
+
+        let mut rep_sock = ctx.socket(zmq::REP).unwrap();
+        rep_sock.bind("inproc://test_recv_args").unwrap();
+
+        let mut req_sock = ctx.socket(zmq::REQ).unwrap();
+        req_sock.connect("inproc://test_recv_args").unwrap();
+
+        req_sock.send_str("0", zmq::SNDMORE).unwrap();
+        req_sock.send_str("1", 0).unwrap();
+
+        // Eliminate race condition where REP socket prematurely
+        // gives up receiving and tries to send err while in
+        // incorrect state. This only happens in the test because we
+        // call `recv_args()` out of context.
+        let _ = rep_sock.recv_string(0).unwrap();
+
+        let result = super::recv_args(&mut rep_sock, 1, 1).unwrap();
+        assert_eq!(result, vec!["1"]);
+    }
+
+    /// Test providing 1 or more args
+    #[test]
+    fn recv_args_ok_range() {
+        let mut ctx = zmq::Context::new();
+
+        let mut rep_sock = ctx.socket(zmq::REP).unwrap();
+        rep_sock.bind("inproc://test_recv_args").unwrap();
+
+        let mut req_sock = ctx.socket(zmq::REQ).unwrap();
+        req_sock.connect("inproc://test_recv_args").unwrap();
+
+        req_sock.send_str("0", zmq::SNDMORE).unwrap();
+        req_sock.send_str("1", 0).unwrap();
+
+        // Eliminate race condition where REP socket prematurely
+        // gives up receiving and tries to send err while in
+        // incorrect state. This only happens in the test because we
+        // call `recv_args()` out of context.
+        let _ = rep_sock.recv_string(0).unwrap();
+
+        let result = super::recv_args(&mut rep_sock, 1, 2).unwrap();
+        assert_eq!(result, vec!["1"]);
+    }
+
+    /// Test providing 1+ args
+    #[test]
+    fn recv_args_ok_variable() {
+        let mut ctx = zmq::Context::new();
+
+        let mut rep_sock = ctx.socket(zmq::REP).unwrap();
+        rep_sock.bind("inproc://test_recv_args").unwrap();
+
+        let mut req_sock = ctx.socket(zmq::REQ).unwrap();
+        req_sock.connect("inproc://test_recv_args").unwrap();
+
+        req_sock.send_str("0", zmq::SNDMORE).unwrap();
+        req_sock.send_str("1", zmq::SNDMORE).unwrap();
+        req_sock.send_str("2", 0).unwrap();
+
+        // Eliminate race condition where REP socket prematurely
+        // gives up receiving and tries to send err while in
+        // incorrect state. This only happens in the test because we
+        // call `recv_args()` out of context.
+        let _ = rep_sock.recv_string(0).unwrap();
+
+        let result = super::recv_args(&mut rep_sock, 1, 0).unwrap();
+        assert_eq!(result, vec!["1", "2"]);
+    }
+
+    /// Test failing less than 2 args
+    #[test]
+    fn recv_args_err_min() {
+        let mut ctx = zmq::Context::new();
+
+        let mut rep_sock = ctx.socket(zmq::REP).unwrap();
+        rep_sock.bind("inproc://test_recv_args").unwrap();
+
+        let mut req_sock = ctx.socket(zmq::REQ).unwrap();
+        req_sock.connect("inproc://test_recv_args").unwrap();
+
+        req_sock.send_str("0", zmq::SNDMORE).unwrap();
+        req_sock.send_str("1", 0).unwrap();
+
+        // Eliminate race condition where REP socket prematurely
+        // gives up receiving and tries to send err while in
+        // incorrect state. This only happens in the test because we
+        // call `recv_args()` out of context.
+        let _ = rep_sock.recv_string(0).unwrap();
+
+        let result = super::recv_args(&mut rep_sock, 2, 2);
+        assert!(result.is_err());
+    }
+
+    /// Test failing more than 1 arg
+    #[test]
+    fn recv_args_err_max() {
+        let mut ctx = zmq::Context::new();
+
+        let mut rep_sock = ctx.socket(zmq::REP).unwrap();
+        rep_sock.bind("inproc://test_recv_args").unwrap();
+
+        let mut req_sock = ctx.socket(zmq::REQ).unwrap();
+        req_sock.connect("inproc://test_recv_args").unwrap();
+
+        req_sock.send_str("0", zmq::SNDMORE).unwrap();
+        req_sock.send_str("1", zmq::SNDMORE).unwrap();
+        req_sock.send_str("2", 0).unwrap();
+
+        // Eliminate race condition where REP socket prematurely
+        // gives up receiving and tries to send err while in
+        // incorrect state. This only happens in the test because we
+        // call `recv_args()` out of context.
+        let _ = rep_sock.recv_string(0).unwrap();
+
+        let result = super::recv_args(&mut rep_sock, 0, 1);
+        assert!(result.is_err());
+    }
+
+    /// Test sending args
+    #[test]
+    fn send_args() {
+        let mut ctx = zmq::Context::new();
+
+        let mut rep_sock = ctx.socket(zmq::REP).unwrap();
+        rep_sock.bind("inproc://test_recv_args").unwrap();
+
+        let mut req_sock = ctx.socket(zmq::REQ).unwrap();
+        req_sock.connect("inproc://test_recv_args").unwrap();
+
+        let req_vec = vec!["moo", "cow"];
+        super::send_args(&mut req_sock, req_vec);
+
+        assert_eq!(rep_sock.recv_string(0).unwrap().unwrap(), "moo");
+        assert!(rep_sock.get_rcvmore().unwrap());
+        assert_eq!(rep_sock.recv_string(0).unwrap().unwrap(), "cow");
+    }
 }
