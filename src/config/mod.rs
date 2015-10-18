@@ -22,13 +22,13 @@ pub trait Config {
 		let mut config_content = String::new();
 		try!(config_file.read_to_string(&mut config_content));
 
-		let config: Self::ConfigFile = json::decode(&config_content).unwrap();
+		let config: Self::ConfigFile = try!(json::decode(&config_content));
 		Ok(config)
 	}
 
 	fn save(config: &Self::ConfigFile, file_path: &Path) -> Result<(), ConfigError> {
         let mut file = try!(File::create(file_path));
-        let json = json::encode(config).unwrap();
+        let json = try!(json::encode(config));
 
         try!(file.write_all(&json.as_bytes()));
         Ok(())
@@ -38,11 +38,25 @@ pub trait Config {
 #[derive(Debug)]
 pub enum ConfigError {
 	IoError(io::Error),
+	JsonDecoderError(json::DecoderError),
+	JsonEncoderError(json::EncoderError),
 }
 
 impl convert::From<io::Error> for ConfigError {
 	fn from(err: io::Error) -> ConfigError {
 		ConfigError::IoError(err)
+	}
+}
+
+impl convert::From<json::DecoderError> for ConfigError {
+	fn from(err: json::DecoderError) -> ConfigError {
+		ConfigError::JsonDecoderError(err)
+	}
+}
+
+impl convert::From<json::EncoderError> for ConfigError {
+	fn from(err: json::EncoderError) -> ConfigError {
+		ConfigError::JsonEncoderError(err)
 	}
 }
 
