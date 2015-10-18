@@ -63,7 +63,7 @@ mod tests {
     }
 
     #[test]
-    fn conf_load() {
+    fn test_conf_load() {
         let test_path = Path::new("test_conf_load.json");
 
         let mut file = File::create(&test_path).unwrap();
@@ -76,7 +76,7 @@ mod tests {
     }
 
     #[test]
-    fn conf_save() {
+    fn test_conf_save() {
         let test_conf = TestConf {
             attribute: 123
         };

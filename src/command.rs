@@ -18,7 +18,7 @@ mod tests {
     use std::process::Command;
 
     #[test]
-    fn exec() {
+    fn test_exec() {
         let cmd = super::exec("whoami").unwrap();
         let user = Command::new("whoami").output().unwrap();
 

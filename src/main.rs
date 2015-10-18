@@ -163,7 +163,7 @@ mod tests {
 
     /// Test providing 1 and only 1 arg
     #[test]
-    fn recv_args_ok_eq() {
+    fn test_recv_args_ok_eq() {
         let mut ctx = zmq::Context::new();
 
         let mut rep_sock = ctx.socket(zmq::REP).unwrap();
@@ -187,7 +187,7 @@ mod tests {
 
     /// Test providing 1 or more args
     #[test]
-    fn recv_args_ok_range() {
+    fn test_recv_args_ok_range() {
         let mut ctx = zmq::Context::new();
 
         let mut rep_sock = ctx.socket(zmq::REP).unwrap();
@@ -211,7 +211,7 @@ mod tests {
 
     /// Test providing 1+ args
     #[test]
-    fn recv_args_ok_variable() {
+    fn test_recv_args_ok_variable() {
         let mut ctx = zmq::Context::new();
 
         let mut rep_sock = ctx.socket(zmq::REP).unwrap();
@@ -236,7 +236,7 @@ mod tests {
 
     /// Test failing less than 2 args
     #[test]
-    fn recv_args_err_min() {
+    fn test_recv_args_err_min() {
         let mut ctx = zmq::Context::new();
 
         let mut rep_sock = ctx.socket(zmq::REP).unwrap();
@@ -260,7 +260,7 @@ mod tests {
 
     /// Test failing more than 1 arg
     #[test]
-    fn recv_args_err_max() {
+    fn test_recv_args_err_max() {
         let mut ctx = zmq::Context::new();
 
         let mut rep_sock = ctx.socket(zmq::REP).unwrap();
@@ -285,7 +285,7 @@ mod tests {
 
     /// Test sending args
     #[test]
-    fn send_args() {
+    fn test_send_args() {
         let mut ctx = zmq::Context::new();
 
         let mut rep_sock = ctx.socket(zmq::REP).unwrap();
