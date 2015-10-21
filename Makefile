@@ -37,7 +37,11 @@ uninstall:
 	fi
 
 test:
+ifeq ($(TARGET), release)
+	$(CARGO) test --release
+else
 	$(CARGO) test
+endif
 
 clean:
 	$(CARGO) clean
