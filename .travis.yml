@@ -2,4 +2,4 @@ language: rust
 rust:
   - stable
 sudo: required
-install: ./.travis_install.sh
+install: ./travis_install.sh
