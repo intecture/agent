@@ -1,21 +1,7 @@
 UNAME_S := $(shell uname -s)
 CARGO := $(shell which cargo)
 TARGET = release
-
-ifeq ($(UNAME_S), Linux)
-	FEDORA := $(grep -qs Fedora /etc/redhat-release)
-	ifeq ($$?, 0)
-		USRPATH = /usr/local
-		ETCPATH = /usr/local/etc
-		export PATH := $(USRPATH)/bin:$(PATH)
-	else
-		USRPATH = /usr
-		ETCPATH = /etc
-	endif
-else ifeq ($(UNAME_S), Darwin)
-	USRPATH = /usr/local
-	ETCPATH = /usr/local/etc
-endif
+PREFIX = /usr/local
 
 all:
 ifeq ($(TARGET), release)
@@ -25,15 +11,15 @@ else
 endif
 
 install:
-	mkdir -p $(ETCPATH)/intecture
-	install -m 0644 resources/agent.json $(ETCPATH)/intecture
-	install -m 0755 target/$(TARGET)/inagent $(USRPATH)/bin
+	mkdir -p $(PREFIX)/etc/intecture
+	install -m 0644 resources/agent.json $(PREFIX)/etc/intecture
+	install -m 0755 target/$(TARGET)/inagent $(PREFIX)/bin
 
 uninstall:
-	rm -f $(USRPATH)/bin/inagent
-	rm -f $(ETCPATH)/intecture/agent.json
-	if [ ! "$(ls -A /tmp)" ]; then\
-		rmdir $(ETCPATH)/intecture; \\
+	rm -f $(PREFIX)/bin/inagent
+	rm -f $(PREFIX)/etc/intecture/agent.json
+	if [ ! "$(ls -A /$(PREFIX)/etc/intecture)" ]; then\
+		rmdir $(PREFIX)/etc/intecture; \\
 	fi
 
 test:

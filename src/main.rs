@@ -6,14 +6,17 @@
 // https://www.tldrlegal.com/l/mpl-2.0>. This file may not be copied,
 // modified, or distributed except according to those terms.
 
-extern crate zmq;
+extern crate inprimitives;
 extern crate rustc_serialize;
+extern crate zmq;
 
-mod command;
 mod config;
 
 use config::agent::AgentConf;
 use config::Config;
+use inprimitives::{command, telemetry, trim_str};
+use inprimitives::telemetry::TelemetryInit;
+use rustc_serialize::json;
 use std::error::Error;
 use std::path::PathBuf;
 use std::process::exit;
@@ -56,10 +59,27 @@ fn run(ctx: &mut zmq::Context) {
                     Ok(output) => send_args(&mut listen_sock, vec![
                         "Ok",
                         &output.status.code().unwrap().to_string(),
-                        &String::from_utf8(output.stdout).unwrap(),
-                        &String::from_utf8(output.stderr).unwrap()
+                        trim_str(&String::from_utf8(output.stdout).unwrap()),
+                        trim_str(&String::from_utf8(output.stderr).unwrap())
                     ]),
                     Err(e) => send_args(&mut listen_sock, vec!["Err", e.description()]),
+                }
+            },
+            "telemetry" => {
+                if recv_args(&mut listen_sock, 0, 0).is_err() {
+                    continue;
+                }
+
+                match telemetry::Telemetry::init() {
+                    Ok(telemetry) => {
+                        let json = json::encode(&telemetry);
+                        if json.is_err() {
+                            send_args(&mut listen_sock, vec!["Err", json.unwrap_err().description() ])
+                        } else {
+                            send_args(&mut listen_sock, vec!["Ok", &json.unwrap() ]);
+                        }
+                    },
+                    Err(e) => send_args(&mut listen_sock, vec!["Err", e.description() ]),
                 }
             },
             _ => {

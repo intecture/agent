@@ -17,7 +17,5 @@ name = "inagent"
 [dependencies]
 
 rustc-serialize = "0.3.*"
-
-[dependencies.zmq]
-
-git = "https://github.com/erickt/rust-zmq.git"
+zmq = { git = "https://github.com/petehayes102/rust-zmq.git" }
+intecture-host-primitives = { git = "https://github.com/betweenlines/intecture-host-primitives.git" }
