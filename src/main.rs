@@ -14,12 +14,13 @@ mod config;
 
 use config::agent::AgentConf;
 use config::Config;
-use inprimitives::{command, telemetry, trim_str};
+use inprimitives::{command, telemetry};
 use inprimitives::telemetry::TelemetryInit;
 use rustc_serialize::json;
 use std::error::Error;
 use std::path::PathBuf;
 use std::process::exit;
+use std::str;
 
 #[cfg_attr(test, allow(dead_code))]
 fn main() {
@@ -59,8 +60,8 @@ fn run(ctx: &mut zmq::Context) {
                     Ok(output) => send_args(&mut listen_sock, vec![
                         "Ok",
                         &output.status.code().unwrap().to_string(),
-                        trim_str(&String::from_utf8(output.stdout).unwrap()),
-                        trim_str(&String::from_utf8(output.stderr).unwrap())
+                        str::from_utf8(&output.stdout).unwrap().trim(),
+                        str::from_utf8(&output.stderr).unwrap().trim()
                     ]),
                     Err(e) => send_args(&mut listen_sock, vec!["Err", e.description()]),
                 }
