@@ -9,7 +9,7 @@ dependencies = [
 
 [[package]]
 name = "aho-corasick"
-version = "0.3.4"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "memchr 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -18,28 +18,23 @@ dependencies = [
 [[package]]
 name = "intecture-host-primitives"
 version = "0.0.1"
-source = "git+https://github.com/betweenlines/intecture-host-primitives.git#843d1d5f30f253dc52216524c81a5d96f8c50e2d"
+source = "git+https://github.com/betweenlines/intecture-host-primitives.git#bcd94f13a1006ea52912faf49a3668d49cd7ff69"
 dependencies = [
- "regex 0.1.41 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "libc"
-version = "0.1.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "libc"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "log"
-version = "0.3.3"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -47,15 +42,15 @@ name = "memchr"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "regex"
-version = "0.1.41"
+version = "0.1.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "aho-corasick 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "aho-corasick 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "memchr 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex-syntax 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -73,18 +68,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "zmq"
 version = "0.7.0"
-source = "git+https://github.com/petehayes102/rust-zmq.git#ae4fb71b995a24bd4812839cf7d2c331428745cf"
+source = "git+https://github.com/petehayes102/rust-zmq.git#bdc71b06875ffc966a5acf11e8e3c7cd1c6a59c9"
 dependencies = [
- "libc 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "log 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "zmq-sys 0.7.0 (git+https://github.com/petehayes102/rust-zmq.git)",
 ]
 
 [[package]]
 name = "zmq-sys"
 version = "0.7.0"
-source = "git+https://github.com/petehayes102/rust-zmq.git#ae4fb71b995a24bd4812839cf7d2c331428745cf"
+source = "git+https://github.com/petehayes102/rust-zmq.git#bdc71b06875ffc966a5acf11e8e3c7cd1c6a59c9"
 dependencies = [
- "libc 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
