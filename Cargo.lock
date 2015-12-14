@@ -1,8 +1,8 @@
 [root]
 name = "intecture-agent"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
- "intecture-host-primitives 0.0.1 (git+https://github.com/betweenlines/intecture-host-primitives.git)",
+ "intecture-host-primitives 0.0.1 (git+https://github.com/betweenlines/intecture-host-primitives.git?tag=0.0.1)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "zmq 0.7.0 (git+https://github.com/petehayes102/rust-zmq.git)",
 ]
@@ -18,7 +18,7 @@ dependencies = [
 [[package]]
 name = "intecture-host-primitives"
 version = "0.0.1"
-source = "git+https://github.com/betweenlines/intecture-host-primitives.git#bcd94f13a1006ea52912faf49a3668d49cd7ff69"
+source = "git+https://github.com/betweenlines/intecture-host-primitives.git?tag=0.0.1#c2f32aff412387f9b1fad15cb66a1e681ed1c26c"
 dependencies = [
  "regex 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
