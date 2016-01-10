@@ -6,7 +6,7 @@
 // https://www.tldrlegal.com/l/mpl-2.0>. This file may not be copied,
 // modified, or distributed except according to those terms.
 
-extern crate inprimitives;
+extern crate inapi;
 extern crate rustc_serialize;
 extern crate zmq;
 
@@ -14,13 +14,11 @@ mod config;
 
 use config::agent::AgentConf;
 use config::Config;
-use inprimitives::{command, telemetry};
-use inprimitives::telemetry::TelemetryInit;
+use inapi::{Command, Host, ProviderFactory, Telemetry};
 use rustc_serialize::json;
 use std::error::Error;
 use std::path::PathBuf;
 use std::process::exit;
-use std::str;
 
 #[cfg_attr(test, allow(dead_code))]
 fn main() {
@@ -43,6 +41,8 @@ fn run(ctx: &mut zmq::Context) {
     let dsn = format!("tcp://*:{}", agent_conf.listen_port);
     listen_sock.bind(&dsn).unwrap();
 
+    let mut host = Host::new();
+
     loop {
         let endpoint_msg = listen_sock.recv_msg(0).unwrap();
         let endpoint = endpoint_msg.as_str().unwrap();
@@ -56,12 +56,27 @@ fn run(ctx: &mut zmq::Context) {
                     Err(_) => continue,
                 }
 
-                match command::exec(&args[0]) {
-                    Ok(output) => send_args(&mut listen_sock, vec![
+                let cmd = Command::new(&args[0]);
+
+                match cmd.exec(&mut host) {
+                    Ok(result) => send_args(&mut listen_sock, vec![
                         "Ok",
-                        &output.status.code().unwrap().to_string(),
-                        str::from_utf8(&output.stdout).unwrap().trim(),
-                        str::from_utf8(&output.stderr).unwrap().trim()
+                        &result.exit_code.to_string(),
+                        &result.stdout,
+                        &result.stderr,
+                    ]),
+                    Err(e) => send_args(&mut listen_sock, vec!["Err", e.description()]),
+                }
+            },
+            "package::default_provider" => {
+                if recv_args(&mut listen_sock, 0, 0).is_err() {
+                    continue;
+                }
+
+                match ProviderFactory::create(&mut host, None) {
+                    Ok(provider) => send_args(&mut listen_sock, vec![
+                        "Ok",
+                        &provider.get_providers().to_string(),
                     ]),
                     Err(e) => send_args(&mut listen_sock, vec!["Err", e.description()]),
                 }
@@ -71,7 +86,7 @@ fn run(ctx: &mut zmq::Context) {
                     continue;
                 }
 
-                match telemetry::Telemetry::init() {
+                match Telemetry::init(&mut host) {
                     Ok(telemetry) => {
                         let json = json::encode(&telemetry);
                         if json.is_err() {

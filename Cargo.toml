@@ -18,4 +18,11 @@ name = "inagent"
 
 rustc-serialize = "0.3.*"
 zmq = { git = "https://github.com/petehayes102/rust-zmq.git" }
-intecture-host-primitives = { tag = "0.0.1", git = "https://github.com/betweenlines/intecture-host-primitives.git" }
+
+[dependencies.intecture-api]
+
+#tag="0.0.3"
+#git = "https://github.com/betweenlines/intecture-api.git"
+path = "../intecture-api"
+default-features = false
+features = ["local-run"]
