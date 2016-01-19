@@ -1,8 +1,8 @@
 [root]
 name = "intecture-agent"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
- "intecture-api 0.0.2",
+ "intecture-api 0.0.3 (git+https://github.com/betweenlines/intecture-api.git?branch=dev)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "zmq 0.7.0 (git+https://github.com/petehayes102/rust-zmq.git)",
 ]
@@ -17,7 +17,8 @@ dependencies = [
 
 [[package]]
 name = "intecture-api"
-version = "0.0.2"
+version = "0.0.3"
+source = "git+https://github.com/betweenlines/intecture-api.git?branch=dev#c0be373071c1ace8a82b3724a1464bf959820cb5"
 dependencies = [
  "lazy_static 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
