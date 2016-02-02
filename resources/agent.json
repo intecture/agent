@@ -1,3 +1,5 @@
 {
-	"listen_port": 7101
+	"api_port": 7101,
+	"upload_port": 7102,
+	"download_port": 7103,
 }
