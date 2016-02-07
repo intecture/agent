@@ -9,9 +9,10 @@
 extern crate inagent;
 extern crate zmq;
 
-use inagent::{AgentConf, load_agent_conf};
-use inagent::file::{File, FileError};
+use inagent::{AgentConf, load_agent_conf, recv_args, Result, send_args};
+use inagent::file::File;
 use std::collections::HashMap;
+use std::error::Error;
 use std::io::Write;
 use std::process::exit;
 use std::sync::{Arc, Mutex, RwLock};
@@ -38,7 +39,16 @@ fn main() {
     }
 
     let mut api_sock = ctx.socket(zmq::PAIR).unwrap();
-    api_sock.connect("inproc:///tmp/inagent.sock").unwrap();
+    api_sock.connect("ipc:///tmp/inagent.sock").unwrap();
+
+    let mut queue_sock = ctx.socket(zmq::PULL).unwrap();
+    queue_sock.bind("inproc://slice_queue").unwrap();
+
+    let mut queue_api_sock = ctx.socket(zmq::PUSH).unwrap();
+    queue_api_sock.connect("inproc://slice_queue").unwrap();
+
+    let mut queue_file_sock = ctx.socket(zmq::PUSH).unwrap();
+    queue_file_sock.connect("inproc://slice_queue").unwrap();
 
     let mut upload_sock = ctx.socket(zmq::SUB).unwrap();
     upload_sock.set_rcvhwm(TOTAL_SLOTS as i32).unwrap();
@@ -50,61 +60,87 @@ fn main() {
     let files = Arc::new(RwLock::new(HashMap::new()));
     let files_c = files.clone();
 
-    let chunk_queue: Arc<Mutex<Vec<ChunkQueueItem>>> = Arc::new(Mutex::new(Vec::new()));
-    let chunk_queue_c = chunk_queue.clone();
-
     thread::spawn(move || {
         loop {
-            let path = api_sock.recv_string(0).unwrap().unwrap();
+            let args;
 
-            if !api_sock.get_rcvmore().unwrap() {
-                continue;
+            match recv_args(&mut api_sock, 4, Some(4), true) {
+                Ok(r) => args = r,
+                Err(_) => continue,
             }
 
-            let hash = api_sock.recv_string(0).unwrap().unwrap().parse::<u64>().unwrap();
+            let path = args[0].to_string();
+            let hash = args[1].parse::<u64>().unwrap();
+            let size = args[2].parse::<u64>().unwrap();
+            let total_chunks = args[3].parse::<u64>().unwrap();
 
-            if !api_sock.get_rcvmore().unwrap() {
-                continue;
-            }
+            match File::new(&path, hash, size) {
+                Ok(f) => {
+                    for x in 0..total_chunks {
+                        send_args(&mut queue_api_sock, vec![&path, &x.to_string()]);
+                    }
 
-            let size = api_sock.recv_string(0).unwrap().unwrap().parse::<u64>().unwrap();
+                    files_c.write().unwrap().insert(path, f);
 
-            if !api_sock.get_rcvmore().unwrap() {
-                continue;
-            }
-
-            let total_chunks = api_sock.recv_string(0).unwrap().unwrap().parse::<u64>().unwrap();
-
-            if let Ok(f) = File::new(&path, hash, size) {
-                for x in 0..total_chunks {
-                    chunk_queue_c.lock().unwrap().push(ChunkQueueItem {
-                        path: path.clone(),
-                        index: x,
-                    });
+                    api_sock.send_str("Ok", 0).unwrap();
+                },
+                Err(e) => {
+                    println!("{:?}", e);
+                    api_sock.send_str("Err", zmq::SNDMORE).unwrap();
+                    api_sock.send_str(e.description(), 0).unwrap();
                 }
-
-                files_c.write().unwrap().insert(path, f);
-
-                api_sock.send_str("Ok", 0).unwrap();
-            } else {
-                // XXX Implement Display and Debug traits for error,
-                // then send as response.
-                api_sock.send_str("Err", 0).unwrap();
             }
         }
     });
 
     let mut available_slots = TOTAL_SLOTS;
+    let chunk_queue: Arc<Mutex<Vec<ChunkQueueItem>>> = Arc::new(Mutex::new(Vec::new()));
+
+    thread::spawn(move || {
+        loop {
+            let args;
+
+            let cmd = queue_sock.recv_string(0).unwrap().unwrap();
+
+            match cmd.as_ref() {
+                "READY" => available_slots += 1,
+                "QUEUE" => {
+                    match recv_args(&mut queue_sock, 2, Some(2), false) {
+                        Ok(r) => args = r,
+                        Err(_) => continue,
+                    }
+
+                    chunk_queue.lock().unwrap().push(ChunkQueueItem {
+                        path: args[0].to_string(),
+                        index: args[1].parse::<u64>().unwrap(),
+                    });
+
+                    let mut queue = chunk_queue.lock().unwrap();
+                    let len = if queue.len() < available_slots { queue.len() } else { available_slots };
+
+                    for item in queue.drain(0..len) {
+                        download_sock.send_str(&item.path, zmq::SNDMORE).unwrap();
+                        download_sock.send_str(&item.index.to_string(), 0).unwrap();
+                        available_slots -= 1;
+                    }
+                },
+                "ERR" => {
+                    match recv_args(&mut queue_sock, 2, Some(2), false) {
+                        Ok(r) => args = r,
+                        Err(_) => continue,
+                    }
+
+                    download_sock.send_str(&args[0], zmq::SNDMORE).unwrap();
+                    // XXX Implement Display and Debug traits for
+                    // error, then send as response.
+                    download_sock.send_str(&args[1], 0).unwrap();
+                },
+                _ => unimplemented!(),
+            }
+        }
+    });
 
     loop {
-        let mut queue = chunk_queue.lock().unwrap();
-        let len = if queue.len() < available_slots { queue.len() } else { available_slots };
-        for item in queue.drain(0..len) {
-            download_sock.send_str(&item.path, zmq::SNDMORE).unwrap();
-            download_sock.send_str(&item.index.to_string(), 0).unwrap();
-            available_slots -= 1;
-        }
-
         let path = upload_sock.recv_string(0).unwrap().unwrap();
 
         if !upload_sock.get_rcvmore().unwrap() {
@@ -120,7 +156,7 @@ fn main() {
 
             let chunk = upload_sock.recv_bytes(0).unwrap();
 
-            let result: Result<(), FileError>;
+            let result: Result<()>;
             let can_retry: bool;
             {
                 let mut files_lock = files.write().unwrap();
@@ -131,16 +167,11 @@ fn main() {
 
             if let Err(_) = result {
                 if can_retry {
-                    chunk_queue.lock().unwrap().push(ChunkQueueItem {
-                        path: path,
-                        index: chunk_index,
-                    });
+                    send_args(&mut queue_file_sock, vec![&path, &chunk_index.to_string()]);
                 } else {
                     files.write().unwrap().remove(&path);
-                    download_sock.send_str(&path, zmq::SNDMORE).unwrap();
-                    // XXX Implement Display and Debug traits for
-                    // error, then send as response.
-                    download_sock.send_str("Failed to upload file!", 0).unwrap();
+                    queue_file_sock.send_str(&path, zmq::SNDMORE).unwrap();
+                    queue_file_sock.send_str("Failed to upload file!", 0).unwrap();
                 }
             }
 

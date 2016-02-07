@@ -6,14 +6,14 @@
 // https://www.tldrlegal.com/l/mpl-2.0>. This file may not be copied,
 // modified, or distributed except according to those terms.
 
+use error::{Error, Result};
 use std::collections::HashMap;
-use std::{convert, fs, io, result};
+use std::fs;
 use std::hash::{Hash, SipHasher, Hasher};
 use std::io::Write;
+use std::path::PathBuf;
 
 const MAX_ATTEMPTS: u8 = 10;
-
-pub type Result<T> = result::Result<T, FileError>;
 
 pub struct File {
     path: String,
@@ -28,15 +28,17 @@ pub struct File {
 }
 
 impl File {
-    fn tmp_filename(path: &str) -> Result<String> {
-        let mut suffix = 0;
+    fn tmp_filename(path: &str) -> String {
+        let mut suffix: u16 = 0;
 
         loop {
-            let tmp_path = format!("{}_tmp{}", path, suffix);
-            let meta = try!(fs::metadata(&tmp_path));
+            let mut path_buf = PathBuf::new();
+            path_buf.push(path);
+            path_buf.push("_tmp");
+            path_buf.push(&suffix.to_string());
 
-            if !meta.is_file() {
-                return Ok(tmp_path);
+            if !path_buf.exists() {
+                return path_buf.into_os_string().into_string().unwrap();
             }
 
             suffix += 1;
@@ -44,17 +46,17 @@ impl File {
     }
 
     pub fn new(path: &str, hash: u64, size: u64) -> Result<File> {
-        let meta = try!(fs::metadata(path));
+        let path_buf = PathBuf::from(path);
 
-        if meta.is_dir() {
-            return Err(FileError::IsDirectory);
+        if path_buf.is_dir() {
+            return Err(Error::FileIsDirectory);
         }
 
-        let tmp_path = try!(Self::tmp_filename(path));
+        let tmp_path = Self::tmp_filename(path);
         let tmp_file = try!(fs::OpenOptions::new()
-            .append(true)
-            .create(true)
+            .read(true)
             .write(true)
+            .create(true)
             .open(&tmp_path));
 
         Ok(File {
@@ -108,11 +110,11 @@ impl File {
         let meta = try!(self.tmp_file.metadata());
 
         if meta.len() != self.size {
-            return Err(FileError::FileSizeMismatch);
+            return Err(Error::FileSizeMismatch);
         }
 
         if self.hash.finish() != self.origin_hash {
-            return Err(FileError::HashMismatch);
+            return Err(Error::FileHashMismatch);
         }
 
         try!(fs::rename(&self.tmp_path, &self.path));
@@ -122,18 +124,5 @@ impl File {
 
     pub fn can_retry(&self) -> bool {
         self.failed_chunks < MAX_ATTEMPTS
-    }
-}
-
-pub enum FileError {
-    FileSizeMismatch,
-    HashMismatch,
-    Io(io::Error),
-    IsDirectory,
-}
-
-impl convert::From<io::Error> for FileError {
-    fn from(err: io::Error) -> FileError {
-        FileError::Io(err)
     }
 }
