@@ -26,7 +26,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Error::FileSizeMismatch => write!(f, "File size does not match expected size"),
-            Error::FileHashMismatch => write!(f, "File hash does not match expected size"),
+            Error::FileHashMismatch => write!(f, "File hash does not match expected hash"),
             Error::FileIsDirectory => write!(f, "Expected file but found directory"),
             Error::InvalidArgsCount => write!(f, "Invalid number of args provided"),
             Error::Io(ref e) => write!(f, "IO error: {}", e),
@@ -39,7 +39,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::FileSizeMismatch => "File size does not match expected size",
-            Error::FileHashMismatch => "File hash does not match expected size",
+            Error::FileHashMismatch => "File hash does not match expected hash",
             Error::FileIsDirectory => "Expected file but found directory",
             Error::InvalidArgsCount => "Invalid number of args provided",
             Error::Io(ref e) => e.description(),

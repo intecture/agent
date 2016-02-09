@@ -45,7 +45,6 @@ pub fn recv_args(sock: &mut zmq::Socket, min: u8, max: Option<u8>, b: bool) -> R
     // wrong state to send messages.
     while sock.get_rcvmore().unwrap() || block {
         let s = sock.recv_string(0).unwrap().unwrap();
-        println!("Agent Recv: {}", &s);
         args.push(s);
         counter += 1;
         block = false;

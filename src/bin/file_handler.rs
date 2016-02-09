@@ -53,6 +53,7 @@ fn main() {
     let mut upload_sock = ctx.socket(zmq::SUB).unwrap();
     upload_sock.set_rcvhwm(TOTAL_SLOTS as i32).unwrap();
     upload_sock.bind(&format!("tcp://*:{}", agent_conf.upload_port)).unwrap();
+    upload_sock.set_subscribe("".as_bytes()).unwrap();
 
     let mut download_sock = ctx.socket(zmq::PUB).unwrap();
     download_sock.bind(&format!("tcp://*:{}", agent_conf.download_port)).unwrap();
@@ -74,10 +75,10 @@ fn main() {
             let size = args[2].parse::<u64>().unwrap();
             let total_chunks = args[3].parse::<u64>().unwrap();
 
-            match File::new(&path, hash, size) {
+            match File::new(&path, hash, size, total_chunks) {
                 Ok(f) => {
                     for x in 0..total_chunks {
-                        send_args(&mut queue_api_sock, vec![&path, &x.to_string()]);
+                        send_args(&mut queue_api_sock, vec!["QUEUE", &path, &x.to_string()]);
                     }
 
                     files_c.write().unwrap().insert(path, f);
@@ -85,7 +86,6 @@ fn main() {
                     api_sock.send_str("Ok", 0).unwrap();
                 },
                 Err(e) => {
-                    println!("{:?}", e);
                     api_sock.send_str("Err", zmq::SNDMORE).unwrap();
                     api_sock.send_str(e.description(), 0).unwrap();
                 }
@@ -103,26 +103,39 @@ fn main() {
             let cmd = queue_sock.recv_string(0).unwrap().unwrap();
 
             match cmd.as_ref() {
-                "READY" => available_slots += 1,
-                "QUEUE" => {
-                    match recv_args(&mut queue_sock, 2, Some(2), false) {
+                "READY" | "QUEUE" => {
+                    let mut queue = chunk_queue.lock().unwrap();
+
+                    if cmd == "QUEUE" {
+                        match recv_args(&mut queue_sock, 2, Some(2), false) {
+                            Ok(r) => args = r,
+                            Err(_) => continue,
+                        }
+
+                        queue.push(ChunkQueueItem {
+                            path: args[0].to_string(),
+                            index: args[1].parse::<u64>().unwrap(),
+                        });
+                    } else {
+                        available_slots += 1
+                    }
+
+                    if available_slots > 0 && queue.len() > 0 {
+                        let item = queue.remove(0);
+                        download_sock.send_str(&item.path, zmq::SNDMORE).unwrap();
+                        download_sock.send_str("Chk", zmq::SNDMORE).unwrap();
+                        download_sock.send_str(&item.index.to_string(), 0).unwrap();
+                        available_slots -= 1;
+                    }
+                },
+                "DONE" => {
+                    match recv_args(&mut queue_sock, 1, Some(1), false) {
                         Ok(r) => args = r,
                         Err(_) => continue,
                     }
 
-                    chunk_queue.lock().unwrap().push(ChunkQueueItem {
-                        path: args[0].to_string(),
-                        index: args[1].parse::<u64>().unwrap(),
-                    });
-
-                    let mut queue = chunk_queue.lock().unwrap();
-                    let len = if queue.len() < available_slots { queue.len() } else { available_slots };
-
-                    for item in queue.drain(0..len) {
-                        download_sock.send_str(&item.path, zmq::SNDMORE).unwrap();
-                        download_sock.send_str(&item.index.to_string(), 0).unwrap();
-                        available_slots -= 1;
-                    }
+                    download_sock.send_str(&args[0], zmq::SNDMORE).unwrap();
+                    download_sock.send_str("Done", 0).unwrap();
                 },
                 "ERR" => {
                     match recv_args(&mut queue_sock, 2, Some(2), false) {
@@ -131,8 +144,7 @@ fn main() {
                     }
 
                     download_sock.send_str(&args[0], zmq::SNDMORE).unwrap();
-                    // XXX Implement Display and Debug traits for
-                    // error, then send as response.
+                    download_sock.send_str("Err", zmq::SNDMORE).unwrap();
                     download_sock.send_str(&args[1], 0).unwrap();
                 },
                 _ => unimplemented!(),
@@ -157,25 +169,43 @@ fn main() {
             let chunk = upload_sock.recv_bytes(0).unwrap();
 
             let result: Result<()>;
+            let is_finished: bool;
             let can_retry: bool;
+            // Artificially scope reference to files_lock to ensure
+            // it releases early.
             {
                 let mut files_lock = files.write().unwrap();
                 let file = files_lock.get_mut(&path).unwrap();
+
                 result = file.write(chunk_index, chunk);
+                is_finished = file.is_finished();
                 can_retry = file.can_retry();
             }
 
-            if let Err(_) = result {
-                if can_retry {
-                    send_args(&mut queue_file_sock, vec![&path, &chunk_index.to_string()]);
-                } else {
-                    files.write().unwrap().remove(&path);
-                    queue_file_sock.send_str(&path, zmq::SNDMORE).unwrap();
-                    queue_file_sock.send_str("Failed to upload file!", 0).unwrap();
+            match result {
+                Ok(_) => {
+                    if is_finished {
+                        let mut files_lock = files.write().unwrap();
+                        match files_lock.get_mut(&path).unwrap().install() {
+                            Ok(()) => {
+                                files_lock.remove(&path);
+                                send_args(&mut queue_file_sock, vec!["DONE", &path]);
+                            },
+                            Err(e) => send_args(&mut queue_file_sock, vec!["ERR", &path, e.description()]),
+                        }
+                    }
                 }
+                Err(e) => {
+                    if can_retry {
+                        send_args(&mut queue_file_sock, vec!["QUEUE", &path]);
+                    } else {
+                        files.write().unwrap().remove(&path);
+                        send_args(&mut queue_file_sock, vec!["ERR", &path, e.description()]);
+                    }
+                },
             }
 
-            available_slots += 1;
+            send_args(&mut queue_file_sock, vec!["READY"]);
         }
     }
 }

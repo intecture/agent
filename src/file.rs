@@ -15,59 +15,75 @@ use std::path::PathBuf;
 
 const MAX_ATTEMPTS: u8 = 10;
 
+enum ReplaceStrategy {
+    Backup(String),
+    Unlink,
+}
+
 pub struct File {
     path: String,
-    tmp_path: String,
-    tmp_file: fs::File,
+    exists: bool,
+    replace_strategy: ReplaceStrategy,
+    upload_path: String,
+    upload_file: fs::File,
     hash: SipHasher,
     origin_hash: u64,
     size: u64,
-    last_chunk: u64,
-    cached_chunks: HashMap<u64, Vec<u8>>,
+    total_chunks: u64,
+    written_chunks: Vec<u64>,
+    queued_chunks: HashMap<u64, Vec<u8>>,
     failed_chunks: u8,
 }
 
 impl File {
-    fn tmp_filename(path: &str) -> String {
-        let mut suffix: u16 = 0;
+    fn get_unique_filename(path: &str, suffix: &str) -> String {
+        let mut counter: u16 = 0;
+
+        let mut base_path = path.to_string();
+        base_path.push_str(suffix);
+
+        let mut counter_path = base_path.clone();
 
         loop {
-            let mut path_buf = PathBuf::new();
-            path_buf.push(path);
-            path_buf.push("_tmp");
-            path_buf.push(&suffix.to_string());
-
-            if !path_buf.exists() {
-                return path_buf.into_os_string().into_string().unwrap();
+            if !PathBuf::from(&counter_path).exists() {
+                return counter_path;
             }
 
-            suffix += 1;
+            counter_path = format!("{}{}", base_path, counter);
+            counter += 1;
         }
     }
 
-    pub fn new(path: &str, hash: u64, size: u64) -> Result<File> {
+    pub fn new(path: &str, hash: u64, size: u64, total_chunks: u64) -> Result<File> {
         let path_buf = PathBuf::from(path);
 
         if path_buf.is_dir() {
             return Err(Error::FileIsDirectory);
         }
 
-        let tmp_path = Self::tmp_filename(path);
+        // XXX Check disk space?
+
+        let tmp_path = Self::get_unique_filename(path, "_upload");
         let tmp_file = try!(fs::OpenOptions::new()
-            .read(true)
-            .write(true)
             .create(true)
+            .write(true)
             .open(&tmp_path));
+
+        // XXX Placeholder for value from options vector.
+        let replace_strategy = ReplaceStrategy::Backup("_moo".to_string());
 
         Ok(File {
             path: path.to_string(),
-            tmp_path: tmp_path,
-            tmp_file: tmp_file,
+            exists: path_buf.exists(),
+            replace_strategy: replace_strategy,
+            upload_path: tmp_path,
+            upload_file: tmp_file,
             hash: SipHasher::new(),
             origin_hash: hash,
             size: size,
-            last_chunk: 0,
-            cached_chunks: HashMap::new(),
+            total_chunks: total_chunks,
+            written_chunks: Vec::new(),
+            queued_chunks: HashMap::new(),
             failed_chunks: 0,
         })
     }
@@ -83,31 +99,28 @@ impl File {
     }
 
     fn do_write(&mut self, index: u64, chunk: Vec<u8>) -> Result<()> {
-        // If length is zero, this is the last chunk in the file
-        if chunk.len() == 0 {
-            try!(self.install());
-        } else if index == self.last_chunk + 1 {
-            try!(self.tmp_file.write_all(&chunk));
+        if index == self.written_chunks.len() as u64 {
+            try!(self.upload_file.write_all(&chunk));
             self.hash.write(&chunk);
-            self.last_chunk = index;
+            self.written_chunks.push(index);
 
             // Write any cached chunks that are next in line
             let mut next_chunk = index + 1;
-            while self.cached_chunks.contains_key(&next_chunk) {
-                try!(self.tmp_file.write_all(&self.cached_chunks.remove(&next_chunk).unwrap()));
+            while self.queued_chunks.contains_key(&next_chunk) {
+                try!(self.upload_file.write_all(&self.queued_chunks.remove(&next_chunk).unwrap()));
                 self.hash.write(&chunk);
-                self.last_chunk = next_chunk;
+                self.written_chunks.push(next_chunk);
                 next_chunk += 1;
             }
         } else {
-            self.cached_chunks.insert(index, chunk);
+            self.queued_chunks.insert(index, chunk);
         }
 
         Ok(())
     }
 
-    fn install(&mut self) -> Result<()> {
-        let meta = try!(self.tmp_file.metadata());
+    pub fn install(&mut self) -> Result<()> {
+        let meta = try!(self.upload_file.metadata());
 
         if meta.len() != self.size {
             return Err(Error::FileSizeMismatch);
@@ -117,9 +130,43 @@ impl File {
             return Err(Error::FileHashMismatch);
         }
 
-        try!(fs::rename(&self.tmp_path, &self.path));
+        // Backup/unlink existing file if exists
+        if self.exists {
+            let bk_path: String;
+
+            match &self.replace_strategy {
+                &ReplaceStrategy::Backup(ref suffix) => {
+                    bk_path = Self::get_unique_filename(&self.path, &suffix);
+                    try!(fs::rename(&self.path, &bk_path));
+                },
+                &ReplaceStrategy::Unlink => {
+                    bk_path = Self::get_unique_filename(&self.path, "_bk");
+                    try!(fs::rename(&self.path, &bk_path));
+                },
+            }
+
+            match fs::rename(&self.upload_path, &self.path) {
+                // XXX This is an inelegant solution. ReplaceStrategy
+                // logic should be grouped together.
+                Ok(_) => match self.replace_strategy {
+                    ReplaceStrategy::Unlink => try!(fs::remove_file(&bk_path)),
+                    _ => (),
+                },
+                Err(e) => {
+                    try!(fs::rename(&bk_path, &self.path));
+                    try!(fs::remove_file(&self.upload_path));
+                    return Err(Error::from(e));
+                }
+            }
+        } else {
+            try!(fs::rename(&self.upload_path, &self.path));
+        }
 
         Ok(())
+    }
+
+    pub fn is_finished(&self) -> bool {
+        self.written_chunks.len() == self.total_chunks as usize
     }
 
     pub fn can_retry(&self) -> bool {
