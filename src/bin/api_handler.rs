@@ -97,7 +97,7 @@ fn main() {
             "file::upload" => {
                 let args;
 
-                match recv_args(&mut api_sock, 4, Some(4), false) {
+                match recv_args(&mut api_sock, 4, None, false) {
                     Ok(r) => args = r,
                     Err(_) => continue,
                 }

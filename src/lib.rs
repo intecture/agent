@@ -51,8 +51,11 @@ pub fn recv_args(sock: &mut zmq::Socket, min: u8, max: Option<u8>, b: bool) -> R
     }
 
     if min > counter || (max.is_some() && max.unwrap() < counter) {
-        sock.send_str("Err", zmq::SNDMORE).unwrap();
-        sock.send_str("Invalid args count", 0).unwrap();
+        if sock_is_writeable(sock.get_socket_type().unwrap()) {
+            sock.send_str("Err", zmq::SNDMORE).unwrap();
+            sock.send_str("Invalid args count", 0).unwrap();
+        }
+
         return Err(Error::InvalidArgsCount);
     }
 
@@ -73,6 +76,23 @@ pub fn send_args(sock: &mut zmq::Socket, args: Vec<&str>) {
 
         sock.send_str(&msg, flag).unwrap();
         x += 1;
+    }
+}
+
+fn sock_is_writeable(sock_type: zmq::SocketType) -> bool {
+    match sock_type {
+        zmq::SocketType::PAIR |
+        zmq::SocketType::PUB |
+        zmq::SocketType::REQ |
+        zmq::SocketType::REP |
+        zmq::SocketType::DEALER |
+        zmq::SocketType::ROUTER |
+        zmq::SocketType::PUSH |
+        zmq::SocketType::XSUB => true,
+
+        zmq::SocketType::SUB |
+        zmq::SocketType::PULL |
+        zmq::SocketType::XPUB => false
     }
 }
 

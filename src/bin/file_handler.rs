@@ -10,7 +10,7 @@ extern crate inagent;
 extern crate zmq;
 
 use inagent::{AgentConf, load_agent_conf, recv_args, Result, send_args};
-use inagent::file::File;
+use inagent::file::{File, convert_opt_args};
 use std::collections::HashMap;
 use std::error::Error;
 use std::io::Write;
@@ -63,19 +63,19 @@ fn main() {
 
     thread::spawn(move || {
         loop {
-            let args;
+            let mut args;
 
-            match recv_args(&mut api_sock, 4, Some(4), true) {
+            match recv_args(&mut api_sock, 4, None, true) {
                 Ok(r) => args = r,
                 Err(_) => continue,
             }
 
-            let path = args[0].to_string();
-            let hash = args[1].parse::<u64>().unwrap();
-            let size = args[2].parse::<u64>().unwrap();
-            let total_chunks = args[3].parse::<u64>().unwrap();
+            let path = args.remove(0).to_string();
+            let hash = args.remove(0).parse::<u64>().unwrap();
+            let size = args.remove(0).parse::<u64>().unwrap();
+            let total_chunks = args.remove(0).parse::<u64>().unwrap();
 
-            match File::new(&path, hash, size, total_chunks) {
+            match File::new(&path, hash, size, total_chunks, convert_opt_args(args)) {
                 Ok(f) => {
                     for x in 0..total_chunks {
                         send_args(&mut queue_api_sock, vec!["QUEUE", &path, &x.to_string()]);
@@ -194,10 +194,10 @@ fn main() {
                             Err(e) => send_args(&mut queue_file_sock, vec!["ERR", &path, e.description()]),
                         }
                     }
-                }
+                },
                 Err(e) => {
                     if can_retry {
-                        send_args(&mut queue_file_sock, vec!["QUEUE", &path]);
+                        send_args(&mut queue_file_sock, vec!["QUEUE", &path, &chunk_index.to_string()]);
                     } else {
                         files.write().unwrap().remove(&path);
                         send_args(&mut queue_file_sock, vec!["ERR", &path, e.description()]);

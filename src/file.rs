@@ -10,10 +10,36 @@ use error::{Error, Result};
 use std::collections::HashMap;
 use std::fs;
 use std::hash::{Hash, SipHasher, Hasher};
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::PathBuf;
 
 const MAX_ATTEMPTS: u8 = 10;
+
+pub enum FileOpts {
+    BackupExistingFile(String),
+}
+
+pub fn convert_opt_args(args: Vec<String>) -> Vec<FileOpts> {
+    let mut opts: Vec<FileOpts> = Vec::new();
+    let mut args_i = args.into_iter();
+
+    while args_i.len() > 0 {
+        if let Some(arg) = args_i.next() {
+            match arg.as_ref() {
+                "OPT_BackupExistingFile" => {
+                    if let Some(value) = args_i.next() {
+                        opts.push(FileOpts::BackupExistingFile(value));
+                    } else {
+                        continue;
+                    }
+                },
+                _ => continue,
+            }
+        }
+    }
+
+    opts
+}
 
 enum ReplaceStrategy {
     Backup(String),
@@ -31,7 +57,7 @@ pub struct File {
     size: u64,
     total_chunks: u64,
     written_chunks: Vec<u64>,
-    queued_chunks: HashMap<u64, Vec<u8>>,
+    queued_chunks: HashMap<u64, String>,
     failed_chunks: u8,
 }
 
@@ -54,7 +80,7 @@ impl File {
         }
     }
 
-    pub fn new(path: &str, hash: u64, size: u64, total_chunks: u64) -> Result<File> {
+    pub fn new(path: &str, hash: u64, size: u64, total_chunks: u64, options: Vec<FileOpts>) -> Result<File> {
         let path_buf = PathBuf::from(path);
 
         if path_buf.is_dir() {
@@ -63,21 +89,27 @@ impl File {
 
         // XXX Check disk space?
 
-        let tmp_path = Self::get_unique_filename(path, "_upload");
-        let tmp_file = try!(fs::OpenOptions::new()
+        let upload_path = Self::get_unique_filename(path, "_upload");
+        let upload_file = try!(fs::OpenOptions::new()
             .create(true)
             .write(true)
-            .open(&tmp_path));
+            .open(&upload_path));
 
-        // XXX Placeholder for value from options vector.
-        let replace_strategy = ReplaceStrategy::Backup("_moo".to_string());
+        let mut replace_strategy = ReplaceStrategy::Unlink;
+
+        // Handle options
+        for opt in options {
+            match opt {
+                FileOpts::BackupExistingFile(suffix) => replace_strategy = ReplaceStrategy::Backup(suffix),
+            }
+        }
 
         Ok(File {
             path: path.to_string(),
             exists: path_buf.exists(),
             replace_strategy: replace_strategy,
-            upload_path: tmp_path,
-            upload_file: tmp_file,
+            upload_path: upload_path,
+            upload_file: upload_file,
             hash: SipHasher::new(),
             origin_hash: hash,
             size: size,
@@ -105,15 +137,28 @@ impl File {
             self.written_chunks.push(index);
 
             // Write any cached chunks that are next in line
-            let mut next_chunk = index + 1;
-            while self.queued_chunks.contains_key(&next_chunk) {
-                try!(self.upload_file.write_all(&self.queued_chunks.remove(&next_chunk).unwrap()));
-                self.hash.write(&chunk);
-                self.written_chunks.push(next_chunk);
-                next_chunk += 1;
+            let mut next_index = index + 1;
+            while self.queued_chunks.contains_key(&next_index) {
+                let mut next_chunk: Vec<u8> = vec![];
+                let chunk_path = self.queued_chunks.remove(&next_index).unwrap();
+                let mut chunk_file = try!(fs::File::open(&chunk_path));
+                try!(chunk_file.read_to_end(&mut next_chunk));
+                try!(fs::remove_file(&chunk_path));
+
+                try!(self.upload_file.write_all(&next_chunk));
+                self.hash.write(&next_chunk);
+                self.written_chunks.push(next_index);
+                next_index += 1;
             }
         } else {
-            self.queued_chunks.insert(index, chunk);
+            let chunk_path = Self::get_unique_filename(&self.path, "_chunk");
+            let mut chunk_file = try!(fs::OpenOptions::new()
+                .create(true)
+                .write(true)
+                .open(&chunk_path));
+            try!(chunk_file.write_all(&chunk));
+
+            self.queued_chunks.insert(index, chunk_path);
         }
 
         Ok(())
