@@ -58,6 +58,7 @@ pub struct File {
     total_chunks: u64,
     written_chunks: Vec<u64>,
     queued_chunks: HashMap<u64, String>,
+    queued_chunks_dir: Option<String>,
     failed_chunks: u8,
 }
 
@@ -116,6 +117,7 @@ impl File {
             total_chunks: total_chunks,
             written_chunks: Vec::new(),
             queued_chunks: HashMap::new(),
+            queued_chunks_dir: None,
             failed_chunks: 0,
         })
     }
@@ -151,7 +153,15 @@ impl File {
                 next_index += 1;
             }
         } else {
-            let chunk_path = Self::get_unique_filename(&self.path, "_chunk");
+            if self.queued_chunks_dir.is_none() {
+                let mut path = PathBuf::from(&self.path);
+                let dir_name = path.file_name().unwrap().to_os_string().into_string().unwrap();
+                path.set_file_name(format!(".{}", dir_name));
+                self.queued_chunks_dir = Some(Self::get_unique_filename(path.to_str().unwrap(), "_chunks"));
+                try!(fs::create_dir(self.queued_chunks_dir.as_ref().unwrap()));
+            }
+
+            let chunk_path = Self::get_unique_filename(&format!("{}/chunk{}", self.queued_chunks_dir.as_ref().unwrap(), index), "");
             let mut chunk_file = try!(fs::OpenOptions::new()
                 .create(true)
                 .write(true)
@@ -173,6 +183,10 @@ impl File {
 
         if self.hash.finish() != self.origin_hash {
             return Err(Error::FileHashMismatch);
+        }
+
+        if self.queued_chunks_dir.is_some() {
+            try!(fs::remove_dir(self.queued_chunks_dir.as_ref().unwrap()));
         }
 
         // Backup/unlink existing file if exists

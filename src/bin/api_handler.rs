@@ -94,6 +94,60 @@ fn main() {
                     Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
                 }
             },
+            "file::delete" => {
+                let args;
+
+                match recv_args(&mut api_sock, 1, Some(1), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match File::new(&mut host, &args[0]) {
+                    Ok(file) => {
+                        match file.delete(&mut host) {
+                            Ok(_) => send_args(&mut api_sock, vec!["Ok"]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
+            "file::get_mode" => {
+                let args;
+
+                match recv_args(&mut api_sock, 1, Some(1), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match File::new(&mut host, &args[0]) {
+                    Ok(file) => {
+                        match file.get_mode(&mut host) {
+                            Ok(mode) => send_args(&mut api_sock, vec!["Ok", &mode.to_string()]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
+            "file::set_mode" => {
+                let args;
+
+                match recv_args(&mut api_sock, 2, Some(2), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match File::new(&mut host, &args[0]) {
+                    Ok(file) => {
+                        match file.set_mode(&mut host, args[1].parse::<u16>().unwrap()) {
+                            Ok(_) => send_args(&mut api_sock, vec!["Ok"]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
             "file::upload" => {
                 let args;
 
