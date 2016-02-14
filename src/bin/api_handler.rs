@@ -112,6 +112,42 @@ fn main() {
                     Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
                 }
             },
+            "file::get_owner" => {
+                let args;
+
+                match recv_args(&mut api_sock, 1, Some(1), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match File::new(&mut host, &args[0]) {
+                    Ok(file) => {
+                        match file.get_owner(&mut host) {
+                            Ok(owner) => send_args(&mut api_sock, vec!["Ok", &owner.user_name, &owner.user_uid.to_string(), &owner.group_name, &owner.group_gid.to_string()]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
+            "file::set_owner" => {
+                let args;
+
+                match recv_args(&mut api_sock, 3, Some(3), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match File::new(&mut host, &args[0]) {
+                    Ok(file) => {
+                        match file.set_owner(&mut host, &args[1], &args[2]) {
+                            Ok(_) => send_args(&mut api_sock, vec!["Ok"]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
             "file::get_mode" => {
                 let args;
 

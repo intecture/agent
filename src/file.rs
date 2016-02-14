@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::hash::{Hash, SipHasher, Hasher};
 use std::io::{Read, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 const MAX_ATTEMPTS: u8 = 10;
 
@@ -175,6 +175,21 @@ impl File {
     }
 
     pub fn install(&mut self) -> Result<()> {
+        let result = self.do_install();
+
+        // Cleanup
+        if Path::new(&self.upload_path).exists() {
+            try!(fs::remove_file(&self.upload_path));
+        }
+
+        if self.queued_chunks_dir.is_some() {
+            try!(fs::remove_dir_all(self.queued_chunks_dir.as_ref().unwrap()));
+        }
+
+        result
+    }
+
+    fn do_install(&mut self) -> Result<()> {
         let meta = try!(self.upload_file.metadata());
 
         if meta.len() != self.size {
@@ -183,10 +198,6 @@ impl File {
 
         if self.hash.finish() != self.origin_hash {
             return Err(Error::FileHashMismatch);
-        }
-
-        if self.queued_chunks_dir.is_some() {
-            try!(fs::remove_dir(self.queued_chunks_dir.as_ref().unwrap()));
         }
 
         // Backup/unlink existing file if exists
@@ -199,7 +210,7 @@ impl File {
                     try!(fs::rename(&self.path, &bk_path));
                 },
                 &ReplaceStrategy::Unlink => {
-                    bk_path = Self::get_unique_filename(&self.path, "_bk");
+                    bk_path = Self::get_unique_filename(&self.path, "_orig");
                     try!(fs::rename(&self.path, &bk_path));
                 },
             }
@@ -232,3 +243,14 @@ impl File {
         self.failed_chunks < MAX_ATTEMPTS
     }
 }
+
+// XXX It is impossible to test this effectively without mocking FS
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//
+//     #[test]
+//     fn test_() {
+//
+//     }
+// }

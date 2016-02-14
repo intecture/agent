@@ -101,6 +101,12 @@ mod tests {
     use super::{recv_args, send_args};
     use zmq;
 
+    // XXX Need to mock FS before we can effectively test this
+    // #[test]
+    // fn test_load_agent_conf() {
+    //
+    // }
+
     /// Test providing 1 and only 1 arg
     #[test]
     fn test_recv_args_ok_eq() {

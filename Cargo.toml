@@ -23,6 +23,16 @@ path = "../intecture-api"
 default-features = false
 features = ["local-run"]
 
+[[bin]]
+
+name = "inagent-api"
+path = "src/bin/api_handler.rs"
+
+[[bin]]
+
+name = "inagent-file"
+path = "src/bin/file_handler.rs"
+
 [lib]
 
 name = "inagent"
