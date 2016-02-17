@@ -18,8 +18,8 @@ zmq = { git = "https://github.com/petehayes102/rust-zmq.git" }
 [dependencies.intecture-api]
 
 # tag="0.0.3"
-# git = "https://github.com/betweenlines/intecture-api.git"
-path = "../intecture-api"
+git = "https://github.com/betweenlines/intecture-api.git"
+branch = "dev"
 default-features = false
 features = ["local-run"]
 
