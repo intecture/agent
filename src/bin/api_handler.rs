@@ -112,6 +112,42 @@ fn main() {
                     Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
                 }
             },
+            "file::mv" => {
+                let args;
+
+                match recv_args(&mut api_sock, 2, Some(2), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match File::new(&mut host, &args[0]) {
+                    Ok(file) => {
+                        match file.mv(&mut host, &args[1]) {
+                            Ok(_) => send_args(&mut api_sock, vec!["Ok"]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
+            "file::copy" => {
+                let args;
+
+                match recv_args(&mut api_sock, 2, Some(2), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match File::new(&mut host, &args[0]) {
+                    Ok(file) => {
+                        match file.copy(&mut host, &args[1]) {
+                            Ok(_) => send_args(&mut api_sock, vec!["Ok"]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
             "file::get_owner" => {
                 let args;
 
