@@ -12,7 +12,7 @@ extern crate rustc_serialize;
 extern crate zmq;
 
 use inagent::{AgentConf, load_agent_conf, recv_args, send_args};
-use inapi::{Command, File, Host, ProviderFactory, Telemetry};
+use inapi::{Command, File, Host, ProviderFactory, Service, Telemetry};
 use rustc_serialize::json;
 use std::error::Error;
 use std::process::exit;
@@ -251,6 +251,26 @@ fn main() {
                     Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
                 }
             },
+            "service::action" => {
+                let args;
+
+                match recv_args(&mut api_sock, 2, Some(2), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                let service = Service::new(&args[0]);
+
+                match service.action(&mut host, &args[1]) {
+                    Ok(result) => send_args(&mut api_sock, vec![
+                        "Ok",
+                        &result.exit_code.to_string(),
+                        &result.stdout,
+                        &result.stderr,
+                    ]),
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            }
             "telemetry" => {
                 if recv_args(&mut api_sock, 0, None, false).is_err() {
                     continue;

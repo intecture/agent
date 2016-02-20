@@ -19,6 +19,7 @@ zmq = { git = "https://github.com/petehayes102/rust-zmq.git" }
 
 version = "0.0.4"
 git = "https://github.com/betweenlines/intecture-api.git"
+branch = "dev"
 default-features = false
 features = ["local-run"]
 
