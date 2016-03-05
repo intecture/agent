@@ -12,7 +12,7 @@ extern crate rustc_serialize;
 extern crate zmq;
 
 use inagent::{AgentConf, load_agent_conf, recv_args, send_args};
-use inapi::{Command, File, Host, ProviderFactory, Service, Telemetry};
+use inapi::{Command, File, Host, ProviderFactory, Service, ServiceRunnable, Telemetry};
 use rustc_serialize::json;
 use std::error::Error;
 use std::process::exit;
@@ -259,7 +259,7 @@ fn main() {
                     Err(_) => continue,
                 }
 
-                let service = Service::new(&args[0]);
+                let service = Service::new_service(ServiceRunnable::Service(&args[0]), None);
 
                 match service.action(&mut host, &args[1]) {
                     Ok(result) => send_args(&mut api_sock, vec![
