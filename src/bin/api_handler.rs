@@ -12,7 +12,7 @@ extern crate rustc_serialize;
 extern crate zmq;
 
 use inagent::{AgentConf, load_agent_conf, recv_args, send_args};
-use inapi::{Command, File, Host, ProviderFactory, Service, ServiceRunnable, Telemetry};
+use inapi::{Command, Directory, DirectoryOpts, File, Host, ProviderFactory, Service, ServiceRunnable, Telemetry};
 use rustc_serialize::json;
 use std::error::Error;
 use std::process::exit;
@@ -60,6 +60,173 @@ fn main() {
                         &result.stdout,
                         &result.stderr,
                     ]),
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
+            "directory::is_directory" => {
+                let args;
+
+                match recv_args(&mut api_sock, 1, Some(1), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match Directory::new(&mut host, &args[0]) {
+                    Ok(_) => send_args(&mut api_sock, vec!["Ok", "1"]),
+                    Err(_) => send_args(&mut api_sock, vec!["Ok", "0"]),
+                }
+            },
+            "directory::exists" => {
+                let args;
+
+                match recv_args(&mut api_sock, 1, Some(1), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match Directory::new(&mut host, &args[0]) {
+                    Ok(dir) => {
+                        match dir.exists(&mut host) {
+                            Ok(exists) => send_args(&mut api_sock, vec!["Ok", if exists { "1" } else { "0" }]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
+            "directory::create" => {
+                let args;
+
+                match recv_args(&mut api_sock, 2, Some(2), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match Directory::new(&mut host, &args[0]) {
+                    Ok(dir) => {
+                        let mut opts = vec![];
+                        if args[1] == "1" {
+                            opts.push(DirectoryOpts::DoRecursive);
+                        }
+
+                        match dir.create(&mut host, if args[1] == "1" { Some(&opts) } else { None }) {
+                            Ok(_) => send_args(&mut api_sock, vec!["Ok"]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
+            "directory::delete" => {
+                let args;
+
+                match recv_args(&mut api_sock, 2, Some(2), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match Directory::new(&mut host, &args[0]) {
+                    Ok(dir) => {
+                        let mut opts = vec![];
+                        if args[1] == "1" {
+                            opts.push(DirectoryOpts::DoRecursive);
+                        }
+
+                        match dir.create(&mut host, if args[1] == "1" { Some(&opts) } else { None }) {
+                            Ok(_) => send_args(&mut api_sock, vec!["Ok"]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
+            "directory::mv" => {
+                let args;
+
+                match recv_args(&mut api_sock, 2, Some(2), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match Directory::new(&mut host, &args[0]) {
+                    Ok(dir) => {
+                        match dir.mv(&mut host, &args[1]) {
+                            Ok(_) => send_args(&mut api_sock, vec!["Ok"]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
+            "directory::get_owner" => {
+                let args;
+
+                match recv_args(&mut api_sock, 1, Some(1), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match Directory::new(&mut host, &args[0]) {
+                    Ok(dir) => {
+                        match dir.get_owner(&mut host) {
+                            Ok(owner) => send_args(&mut api_sock, vec!["Ok", &owner.user_name, &owner.user_uid.to_string(), &owner.group_name, &owner.group_gid.to_string()]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
+            "directory::set_owner" => {
+                let args;
+
+                match recv_args(&mut api_sock, 3, Some(3), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match Directory::new(&mut host, &args[0]) {
+                    Ok(dir) => {
+                        match dir.set_owner(&mut host, &args[1], &args[2]) {
+                            Ok(_) => send_args(&mut api_sock, vec!["Ok"]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
+            "directory::get_mode" => {
+                let args;
+
+                match recv_args(&mut api_sock, 1, Some(1), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match Directory::new(&mut host, &args[0]) {
+                    Ok(dir) => {
+                        match dir.get_mode(&mut host) {
+                            Ok(mode) => send_args(&mut api_sock, vec!["Ok", &mode.to_string()]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
+                    Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                }
+            },
+            "directory::set_mode" => {
+                let args;
+
+                match recv_args(&mut api_sock, 2, Some(2), false) {
+                    Ok(r) => args = r,
+                    Err(_) => continue,
+                }
+
+                match Directory::new(&mut host, &args[0]) {
+                    Ok(dir) => {
+                        match dir.set_mode(&mut host, args[1].parse::<u16>().unwrap()) {
+                            Ok(_) => send_args(&mut api_sock, vec!["Ok"]),
+                            Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
+                        }
+                    },
                     Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
                 }
             },
