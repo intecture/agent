@@ -18,7 +18,7 @@ dependencies = [
 [[package]]
 name = "intecture-api"
 version = "0.0.5"
-source = "git+https://github.com/betweenlines/intecture-api.git?branch=dev#394d12f963df939b6a2be121757413f5f85d2dcc"
+source = "git+https://github.com/betweenlines/intecture-api.git?branch=dev#8c721befc89d08a8af310c5c5cf82ab49f140c5f"
 dependencies = [
  "lazy_static 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
