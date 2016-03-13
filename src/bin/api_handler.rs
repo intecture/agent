@@ -132,7 +132,7 @@ fn main() {
                             opts.push(DirectoryOpts::DoRecursive);
                         }
 
-                        match dir.create(&mut host, if args[1] == "1" { Some(&opts) } else { None }) {
+                        match dir.delete(&mut host, if args[1] == "1" { Some(&opts) } else { None }) {
                             Ok(_) => send_args(&mut api_sock, vec!["Ok"]),
                             Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
                         }
