@@ -149,7 +149,7 @@ fn main() {
                 }
 
                 match Directory::new(&mut host, &args[0]) {
-                    Ok(dir) => {
+                    Ok(mut dir) => {
                         match dir.mv(&mut host, &args[1]) {
                             Ok(_) => send_args(&mut api_sock, vec!["Ok"]),
                             Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
@@ -288,7 +288,7 @@ fn main() {
                 }
 
                 match File::new(&mut host, &args[0]) {
-                    Ok(file) => {
+                    Ok(mut file) => {
                         match file.mv(&mut host, &args[1]) {
                             Ok(_) => send_args(&mut api_sock, vec!["Ok"]),
                             Err(e) => send_args(&mut api_sock, vec!["Err", e.description()]),
