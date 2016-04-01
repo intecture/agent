@@ -6,9 +6,11 @@
 // https://www.tldrlegal.com/l/mpl-2.0>. This file may not be copied,
 // modified, or distributed except according to those terms.
 
+extern crate czmq;
 extern crate inagent;
 extern crate zmq;
 
+use czmq::{ZAuth, ZCert};
 use inagent::{AgentConf, load_agent_conf, recv_args, Result, send_args};
 use inagent::file::{File, convert_opt_args};
 use std::collections::HashMap;
@@ -38,6 +40,18 @@ fn main() {
         },
     }
 
+    let zauth = ZAuth::new().unwrap();
+    zauth.load_curve(Some(&agent_conf.users_path)).unwrap();
+
+    let server_cert: ZCert;
+    match ZCert::load(&agent_conf.server_cert) {
+        Ok(c) => server_cert = c,
+        Err(_) => {
+            println!("Could not load server certificate!");
+            exit(1);
+        }
+    }
+
     let mut api_sock = ctx.socket(zmq::PAIR).unwrap();
     api_sock.connect("ipc:///tmp/inagent.sock").unwrap();
 
@@ -51,11 +65,16 @@ fn main() {
     queue_file_sock.connect("inproc://slice_queue").unwrap();
 
     let mut upload_sock = ctx.socket(zmq::SUB).unwrap();
+    upload_sock.set_zap_domain("intecture").unwrap();
+    upload_sock.set_curve_server(true).unwrap();
     upload_sock.set_rcvhwm(TOTAL_SLOTS as i32).unwrap();
+    server_cert.apply(&mut upload_sock);
     upload_sock.bind(&format!("tcp://*:{}", agent_conf.upload_port)).unwrap();
     upload_sock.set_subscribe("".as_bytes()).unwrap();
 
     let mut download_sock = ctx.socket(zmq::PUB).unwrap();
+    download_sock.set_curve_server(true).unwrap();
+    server_cert.apply(&mut download_sock);
     download_sock.bind(&format!("tcp://*:{}", agent_conf.download_port)).unwrap();
 
     let files = Arc::new(RwLock::new(HashMap::new()));

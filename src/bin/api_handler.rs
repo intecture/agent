@@ -6,11 +6,13 @@
 // https://www.tldrlegal.com/l/mpl-2.0>. This file may not be copied,
 // modified, or distributed except according to those terms.
 
+extern crate czmq;
 extern crate inagent;
 extern crate inapi;
 extern crate rustc_serialize;
 extern crate zmq;
 
+use czmq::{ZAuth, ZCert};
 use inagent::{AgentConf, load_agent_conf, recv_args, send_args};
 use inapi::{Command, Directory, DirectoryOpts, File, Host, ProviderFactory, Service, ServiceRunnable, Telemetry};
 use rustc_serialize::json;
@@ -30,7 +32,22 @@ fn main() {
         },
     }
 
+    let zauth = ZAuth::new().unwrap();
+    zauth.load_curve(Some(&agent_conf.users_path)).unwrap();
+
+    let server_cert: ZCert;
+    match ZCert::load(&agent_conf.server_cert) {
+        Ok(c) => server_cert = c,
+        Err(_) => {
+            println!("Could not load server certificate!");
+            exit(1);
+        }
+    }
+
     let mut api_sock = ctx.socket(zmq::REP).unwrap();
+    api_sock.set_zap_domain("intecture").unwrap();
+    api_sock.set_curve_server(true).unwrap();
+    server_cert.apply(&mut api_sock);
     api_sock.bind(&format!("tcp://*:{}", agent_conf.api_port)).unwrap();
 
     let mut file_sock = ctx.socket(zmq::PAIR).unwrap();

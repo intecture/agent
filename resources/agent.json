@@ -1,4 +1,6 @@
 {
+	"server_cert": "<CFGPATH>/server.crt",
+	"users_path": "<CFGPATH>/users/",
 	"api_port": 7101,
 	"upload_port": 7102,
 	"download_port": 7103

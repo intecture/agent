@@ -12,8 +12,9 @@ build = "build.rs"
 
 [dependencies]
 
+czmq = { git = "https://github.com/petehayes102/rust-czmq.git", branch = "dev" }
 rustc-serialize = "0.3.*"
-zmq = { git = "https://github.com/petehayes102/rust-zmq.git", branch = "feature/socket-raw" }
+zmq = { git = "https://github.com/petehayes102/rust-zmq.git", branch = "tmp-master" }
 
 [dependencies.intecture-api]
 

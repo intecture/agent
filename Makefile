@@ -11,8 +11,9 @@ else
 endif
 
 install:
-	mkdir -p $(PREFIX)/etc/intecture
-	install -m 0644 resources/agent.json $(PREFIX)/etc/intecture/
+	mkdir -p $(PREFIX)/etc/intecture/users
+	sed 's~<CFGPATH>~$(PREFIX)/etc/intecture~' resources/agent.json > $(PREFIX)/etc/intecture/agent.json
+	chmod 0644 $(PREFIX)/etc/intecture/agent.json
 	install -m 0755 target/$(TARGET)/inagent-api $(PREFIX)/bin/
 	install -m 0755 target/$(TARGET)/inagent-file $(PREFIX)/bin/
 	install -m 0644 target/$(TARGET)/libinagent.rlib $(PREFIX)/lib/

@@ -11,6 +11,8 @@ use config::Config;
 #[derive(Debug)]
 #[derive(RustcDecodable, RustcEncodable)]
 pub struct AgentConf {
+    pub server_cert: String,
+    pub users_path: String,
     pub api_port: i32,
     pub upload_port: i32,
     pub download_port: i32,
