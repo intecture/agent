@@ -10,11 +10,15 @@ homepage = "https://intecture.io"
 repository = "https://github.com/betweenlines/intecture-agent"
 build = "build.rs"
 
+[dev-dependencies]
+
+tempdir = "0.3.*"
+
 [dependencies]
 
-czmq = { git = "https://github.com/petehayes102/rust-czmq.git", branch = "dev" }
+#czmq = { git = "https://github.com/petehayes102/rust-czmq.git", branch = "dev" }
+czmq = { path = "../zmq/rust-czmq" }
 rustc-serialize = "0.3.*"
-zmq = { git = "https://github.com/petehayes102/rust-zmq.git", branch = "tmp-master" }
 
 [dependencies.intecture-api]
 
@@ -22,17 +26,3 @@ version = "0.1.1"
 git = "https://github.com/betweenlines/intecture-api.git"
 default-features = false
 features = ["local-run"]
-
-[[bin]]
-
-name = "inagent-api"
-path = "src/bin/api_handler.rs"
-
-[[bin]]
-
-name = "inagent-file"
-path = "src/bin/file_handler.rs"
-
-[lib]
-
-name = "inagent"
