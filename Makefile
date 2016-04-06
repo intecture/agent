@@ -14,14 +14,10 @@ install:
 	mkdir -p $(PREFIX)/etc/intecture/users
 	sed 's~<CFGPATH>~$(PREFIX)/etc/intecture~' resources/agent.json > $(PREFIX)/etc/intecture/agent.json
 	chmod 0644 $(PREFIX)/etc/intecture/agent.json
-	install -m 0755 target/$(TARGET)/inagent-api $(PREFIX)/bin/
-	install -m 0755 target/$(TARGET)/inagent-file $(PREFIX)/bin/
-	install -m 0644 target/$(TARGET)/libinagent.rlib $(PREFIX)/lib/
+	install -m 0755 target/$(TARGET)/inagent $(PREFIX)/bin/
 
 uninstall:
-	rm -f $(PREFIX)/bin/inagent-api
-	rm -f $(PREFIX)/bin/inagent-file
-	rm -f $(PREFIX)/lib/libinagent.rlib
+	rm -f $(PREFIX)/bin/inagent
 	rm -f $(PREFIX)/etc/intecture/agent.json
 	if [ ! "$(ls -A /$(PREFIX)/etc/intecture)" ]; then\
 		rmdir $(PREFIX)/etc/intecture; \\
