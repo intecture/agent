@@ -23,6 +23,7 @@ rustc-serialize = "0.3.*"
 
 version = "0.1.1"
 git = "https://github.com/betweenlines/intecture-api.git"
+branch = "dev"
 default-features = false
 features = ["local-run"]
 
