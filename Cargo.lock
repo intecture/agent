@@ -6,6 +6,7 @@ dependencies = [
  "intecture-api 0.1.1 (git+https://github.com/betweenlines/intecture-api.git?branch=dev)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempdir 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zmq 0.8.0 (git+https://github.com/petehayes102/rust-zmq.git?branch=tmp-master)",
 ]
 
 [[package]]

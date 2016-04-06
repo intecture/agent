@@ -18,6 +18,7 @@ tempdir = "0.3.*"
 
 czmq = { git = "https://github.com/petehayes102/rust-czmq.git", branch = "dev" }
 rustc-serialize = "0.3.*"
+zmq = { git = "https://github.com/petehayes102/rust-zmq.git", branch = "tmp-master" }
 
 [dependencies.intecture-api]
 

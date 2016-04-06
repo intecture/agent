@@ -31,10 +31,20 @@ impl Handler<ApiHandler> for ApiHandler {
     fn run(&self) -> Result<()> {
         let mut host = Host::new();
 
-        let api_sock = try!(ZSock::new_rep(&format!("tcp://*:{}", self.conf.api_port)));
+        let api_sock = ZSock::new(::zmq::REP);
         api_sock.set_zap_domain("intecture");
         api_sock.set_curve_server(true);
         self.cert.apply(&api_sock);
+
+        let m = ::czmq::ZMonitor::new(&api_sock).unwrap();
+        m.set_attrs(&[::czmq::ZMonitorEvents::All]).unwrap();
+        m.start().unwrap();
+
+        api_sock.bind(&format!("tcp://*:{}", self.conf.api_port)).unwrap();
+
+        for _ in 0..20 {
+            println!("Agent - {:?}", m.get_attr().unwrap().unwrap());
+        }
 
         let file_sock = try!(ZSock::new_pair("inproc://api_file_link"));
 

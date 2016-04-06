@@ -11,6 +11,7 @@ extern crate inapi;
 extern crate rustc_serialize;
 #[cfg(test)]
 extern crate tempdir;
+extern crate zmq;
 
 mod config;
 mod error;
@@ -32,25 +33,25 @@ use std::thread;
 fn main() {
     let agent_conf = Arc::new(try_exit(AgentConf::load_path(None)));
 
-    let zauth = try_exit(ZAuth::new());
-    try_exit(zauth.load_curve(Some(&agent_conf.users_path)));
+    // let zauth = try_exit(ZAuth::new());
+    // try_exit(zauth.load_curve(None));//Some(&agent_conf.users_path)));
 
     let server_cert = Arc::new(try_exit(ZCert::load(&agent_conf.server_cert)));
-
-    let api = ApiHandler::new(agent_conf.clone(), server_cert.clone());
-    let api_thread = thread::spawn(move || {
-        // XXX This error should be logged.
-        let _ = api.run();
-    });
 
     let file = FileHandler::new(agent_conf.clone(), server_cert.clone());
     let file_thread = thread::spawn(move || {
         // XXX This error should be logged.
-        let _ = file.run();
+        try_exit(file.run());
     });
 
+    // let api = ApiHandler::new(agent_conf.clone(), server_cert.clone());
+    // let api_thread = thread::spawn(move || {
+    //     // XXX This error should be logged.
+    //     try_exit(api.run());
+    // });
+    //
+    // api_thread.join().unwrap();
     file_thread.join().unwrap();
-    api_thread.join().unwrap();
 }
 
 fn try_exit<T, E>(r: StdResult<T, E>) -> T
