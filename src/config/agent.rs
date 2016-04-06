@@ -58,7 +58,7 @@ mod tests {
 
         let dir = TempDir::new("test_load_agent_conf").unwrap();
 
-        assert!(AgentConf::load_path(None).is_err());
+        assert!(AgentConf::load_path(Some(&["/fake/dir"])).is_err());
 
         let conf = AgentConf {
             server_cert: "/path/to/cert.crt".to_string(),
