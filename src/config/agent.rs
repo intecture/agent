@@ -47,11 +47,15 @@ impl Config for AgentConf {
 #[cfg(test)]
 mod tests {
     use config::Config;
+    use czmq::zsys_init;
+    use std::fs::create_dir;
     use super::*;
     use tempdir::TempDir;
 
     #[test]
     fn test_load_agent_conf() {
+        zsys_init();
+
         let dir = TempDir::new("test_load_agent_conf").unwrap();
 
         assert!(AgentConf::load_path(None).is_err());
@@ -65,10 +69,12 @@ mod tests {
         };
 
         let mut dir_pathbuf = dir.path().to_path_buf();
-        dir_pathbuf.set_file_name("intecture.conf");
-        let paths = [dir.path().to_str().unwrap()];
+        dir_pathbuf.push("intecture");
+        create_dir(&dir_pathbuf).unwrap();
 
+        dir_pathbuf.push("agent.json");
         AgentConf::save(&conf, dir_pathbuf.as_path()).unwrap();
-        assert!(AgentConf::load_path(Some(&paths)).is_ok());
+
+        assert!(AgentConf::load_path(Some(&[dir.path().to_str().unwrap()])).is_ok());
     }
 }

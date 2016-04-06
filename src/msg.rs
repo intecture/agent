@@ -9,7 +9,6 @@
 use czmq::{ZMsg, ZSock};
 use error::{Error, Result};
 use std::error::Error as StdError;
-use std::fmt::{Debug, Display};
 
 pub struct Msg;
 
@@ -79,18 +78,20 @@ impl Msg {
 
 #[cfg(test)]
 mod tests {
-    use czmq::{ZMsg, ZSock};
+    use czmq::{ZMsg, ZSock, zsys_init};
     use super::*;
 
     /// Test providing 1 and only 1 arg
     #[test]
     fn test_recv_args_ok_eq() {
-        let mut server = ZSock::new_rep("inproc://msg_recv_args_ok_eq").unwrap();
-        let mut client = ZSock::new_req("inproc://msg_recv_args_ok_eq").unwrap();
+        zsys_init();
+
+        let server = ZSock::new_rep("inproc://msg_recv_args_ok_eq").unwrap();
+        let client = ZSock::new_req("inproc://msg_recv_args_ok_eq").unwrap();
 
         let msg = ZMsg::new();
         msg.addstr("0").unwrap();
-        msg.send(&client);
+        msg.send(&client).unwrap();
 
         let rcv_msg = Msg::expect_recv(&server, 1, Some(1), true).unwrap();
         assert_eq!(rcv_msg.popstr().unwrap().unwrap(), "0");
@@ -99,12 +100,14 @@ mod tests {
     /// Test providing 1 or more args
     #[test]
     fn test_recv_args_ok_range() {
-        let mut server = ZSock::new_rep("inproc://msg_recv_args_ok_range").unwrap();
-        let mut client = ZSock::new_req("inproc://msg_recv_args_ok_range").unwrap();
+        zsys_init();
+
+        let server = ZSock::new_rep("inproc://msg_recv_args_ok_range").unwrap();
+        let client = ZSock::new_req("inproc://msg_recv_args_ok_range").unwrap();
 
         let msg = ZMsg::new();
         msg.addstr("0").unwrap();
-        msg.send(&client);
+        msg.send(&client).unwrap();
 
         let rcv_msg = Msg::expect_recv(&server, 1, Some(2), true).unwrap();
         assert_eq!(rcv_msg.popstr().unwrap().unwrap(), "0");
@@ -113,14 +116,16 @@ mod tests {
     /// Test providing 1+ args
     #[test]
     fn test_recv_args_ok_variable() {
-        let mut server = ZSock::new_rep("inproc://msg_recv_args_ok_variable").unwrap();
-        let mut client = ZSock::new_req("inproc://msg_recv_args_ok_variable").unwrap();
+        zsys_init();
+
+        let server = ZSock::new_rep("inproc://msg_recv_args_ok_variable").unwrap();
+        let client = ZSock::new_req("inproc://msg_recv_args_ok_variable").unwrap();
 
         let msg = ZMsg::new();
         msg.addstr("0").unwrap();
         msg.addstr("1").unwrap();
         msg.addstr("2").unwrap();
-        msg.send(&client);
+        msg.send(&client).unwrap();
 
         let rcv_msg = Msg::expect_recv(&server, 2, None, true).unwrap();
         assert_eq!(rcv_msg.popstr().unwrap().unwrap(), "0");
@@ -131,13 +136,15 @@ mod tests {
     /// Test failing less than 3 args
     #[test]
     fn test_recv_args_err_min() {
-        let mut server = ZSock::new_rep("inproc://msg_recv_args_err_min").unwrap();
-        let mut client = ZSock::new_req("inproc://msg_recv_args_err_min").unwrap();
+        zsys_init();
+
+        let server = ZSock::new_rep("inproc://msg_recv_args_err_min").unwrap();
+        let client = ZSock::new_req("inproc://msg_recv_args_err_min").unwrap();
 
         let msg = ZMsg::new();
         msg.addstr("0").unwrap();
         msg.addstr("1").unwrap();
-        msg.send(&client);
+        msg.send(&client).unwrap();
 
         let rcv_msg = Msg::expect_recv(&server, 3, None, true);
         assert!(rcv_msg.is_err());
@@ -146,14 +153,16 @@ mod tests {
     /// Test failing more than 1 arg
     #[test]
     fn test_recv_args_err_max() {
-        let mut server = ZSock::new_rep("inproc://msg_recv_args_err_max").unwrap();
-        let mut client = ZSock::new_req("inproc://msg_recv_args_err_max").unwrap();
+        zsys_init();
+
+        let server = ZSock::new_rep("inproc://msg_recv_args_err_max").unwrap();
+        let client = ZSock::new_req("inproc://msg_recv_args_err_max").unwrap();
 
         let msg = ZMsg::new();
         msg.addstr("0").unwrap();
         msg.addstr("1").unwrap();
         msg.addstr("2").unwrap();
-        msg.send(&client);
+        msg.send(&client).unwrap();
 
         let rcv_msg = Msg::expect_recv(&server, 0, Some(1), true);
         assert!(rcv_msg.is_err());

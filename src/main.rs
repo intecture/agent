@@ -19,31 +19,34 @@ mod handler;
 mod msg;
 
 use config::agent::AgentConf;
-use czmq::{ZAuth, ZCert, ZSock};
-use error::{Error, Result};
+use czmq::{ZAuth, ZCert};
+use error::Error;
 use handler::{ApiHandler, FileHandler, Handler};
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::process::exit;
 use std::result::Result as StdResult;
+use std::sync::Arc;
 use std::thread;
 
 fn main() {
-    let agent_conf = try_exit(AgentConf::load_path(None));
-println!("{:?}", agent_conf);
+    let agent_conf = Arc::new(try_exit(AgentConf::load_path(None)));
+
     let zauth = try_exit(ZAuth::new());
     try_exit(zauth.load_curve(Some(&agent_conf.users_path)));
 
-    let server_cert = try_exit(ZCert::load(&agent_conf.server_cert));
+    let server_cert = Arc::new(try_exit(ZCert::load(&agent_conf.server_cert)));
 
-    let api = ApiHandler::new(&agent_conf, &server_cert);
+    let api = ApiHandler::new(agent_conf.clone(), server_cert.clone());
     let api_thread = thread::spawn(move || {
-        api.run();
+        // XXX This error should be logged.
+        let _ = api.run();
     });
 
-    let file = FileHandler::new(&agent_conf, &server_cert);
+    let file = FileHandler::new(agent_conf.clone(), server_cert.clone());
     let file_thread = thread::spawn(move || {
-        file.run();
+        // XXX This error should be logged.
+        let _ = file.run();
     });
 
     file_thread.join().unwrap();

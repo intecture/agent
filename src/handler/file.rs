@@ -7,15 +7,13 @@
 // modified, or distributed except according to those terms.
 
 use config::agent::AgentConf;
-use czmq::{ZCert, ZMsg, ZSock};
-use error::{Error, Result};
+use czmq::{ZCert, ZSock};
+use error::Result;
 use file::{File, convert_opt_args};
 use msg::Msg;
 use std::collections::HashMap;
 use std::error::Error as StdError;
-use std::fmt::{Debug, Display};
 use std::io::Write;
-use std::process::exit;
 use std::sync::{Arc, Mutex, RwLock};
 use std::thread;
 use super::Handler;
@@ -27,13 +25,13 @@ struct ChunkQueueItem {
     index: u64,
 }
 
-pub struct FileHandler<'a> {
-    conf: &'a AgentConf,
-    cert: &'a ZCert,
+pub struct FileHandler {
+    conf: Arc<AgentConf>,
+    cert: Arc<ZCert>,
 }
 
-impl<'a> Handler<'a, FileHandler<'a>> for FileHandler<'a> {
-    fn new(conf: &'a AgentConf, cert: &'a ZCert) -> FileHandler<'a> {
+impl Handler<FileHandler> for FileHandler {
+    fn new(conf: Arc<AgentConf>, cert: Arc<ZCert>) -> FileHandler {
         FileHandler {
             conf: conf,
             cert: cert,
@@ -66,28 +64,28 @@ impl<'a> Handler<'a, FileHandler<'a>> for FileHandler<'a> {
 
         thread::spawn(move || {
             loop {
-                let _: Result<()> = match handle_api_msg(&api_sock, &queue_api_sock, &files_c) {
-                    Ok(frames) => Msg::send_ok(&api_sock, frames),
-                    Err(e) => Msg::send_err(&api_sock, e),
-                };
+                if let Err(e) = handle_api_msg(&api_sock, &queue_api_sock, &files_c) {
+                    // XXX This error should be logged.
+                    let _ = Msg::send_err(&api_sock, e);
+                }
             }
         });
 
         thread::spawn(move || {
             loop {
-                handle_download_msg(&download_sock, &queue_sock, &chunk_queue, &mut available_slots);
+                // XXX This error should be logged.
+                let _ = handle_download_msg(&download_sock, &queue_sock, &chunk_queue, &mut available_slots);
             }
         });
 
         loop {
-            handle_upload_msg(&upload_sock, &queue_file_sock, &files);
+            // XXX This error should be logged.
+            let _ = handle_upload_msg(&upload_sock, &queue_file_sock, &files);
         }
-
-        Ok(())
     }
 }
 
-fn handle_api_msg<'a>(sock: &ZSock, queue_sock: &ZSock, files: &Arc<RwLock<HashMap<String, File>>>) -> Result<Vec<&'a str>> {
+fn handle_api_msg(sock: &ZSock, queue_sock: &ZSock, files: &Arc<RwLock<HashMap<String, File>>>) -> Result<()> {
     let request = try!(Msg::expect_recv(&sock, 4, None, true));
     let path = try!(request.popstr()).unwrap();
     let hash = try!(request.popstr()).unwrap().parse::<u64>().unwrap();
@@ -106,7 +104,7 @@ fn handle_api_msg<'a>(sock: &ZSock, queue_sock: &ZSock, files: &Arc<RwLock<HashM
 
     files.write().unwrap().insert(path, file);
 
-    Ok(vec![])
+    Ok(())
 }
 
 fn handle_download_msg(download_sock: &ZSock, queue_sock: &ZSock, chunk_queue: &Arc<Mutex<Vec<ChunkQueueItem>>>, available_slots: &mut usize) -> Result<()> {
@@ -161,7 +159,7 @@ fn handle_download_msg(download_sock: &ZSock, queue_sock: &ZSock, chunk_queue: &
 }
 
 fn handle_upload_msg(upload_sock: &ZSock, queue_sock: &ZSock, files: &Arc<RwLock<HashMap<String, File>>>) -> Result<()> {
-    let request = try!(Msg::expect_recv(&queue_sock, 3, Some(3), true));
+    let request = try!(Msg::expect_recv(&upload_sock, 3, Some(3), true));
     let path = try!(request.popstr()).unwrap();
     let chunk_index = try!(request.popstr()).unwrap().parse::<u64>().unwrap();
     let chunk = try!(request.popbytes());
@@ -188,7 +186,7 @@ fn handle_upload_msg(upload_sock: &ZSock, queue_sock: &ZSock, files: &Arc<RwLock
                     match files_lock.get_mut(&path).unwrap().install() {
                         Ok(()) => {
                             files_lock.remove(&path);
-                            Msg::send(&queue_sock, vec!["DONE", &path]);
+                            try!(Msg::send(&queue_sock, vec!["DONE", &path]));
                         },
                         Err(e) => try!(Msg::send(&queue_sock, vec!["ERR", &path, e.description()])),
                     }
@@ -204,7 +202,7 @@ fn handle_upload_msg(upload_sock: &ZSock, queue_sock: &ZSock, files: &Arc<RwLock
             },
         }
 
-        Msg::send(&queue_sock, vec!["READY"]);
+        try!(Msg::send(&queue_sock, vec!["READY"]));
     }
 
     Ok(())

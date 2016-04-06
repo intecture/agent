@@ -12,10 +12,11 @@ mod file;
 use config::agent::AgentConf;
 use czmq::ZCert;
 use error::Result;
+use std::sync::Arc;
 pub use self::api::ApiHandler;
 pub use self::file::FileHandler;
 
-pub trait Handler<'a, T> {
-    fn new(conf: &'a AgentConf, cert: &'a ZCert) -> T;
+pub trait Handler<T> {
+    fn new(conf: Arc<AgentConf>, cert: Arc<ZCert>) -> T;
     fn run(&self) -> Result<()>;
 }
