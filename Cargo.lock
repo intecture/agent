@@ -24,7 +24,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "czmq"
 version = "0.0.1"
-source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#00f43dbb4ff61f5a9488d057b8d2f70921083d96"
+source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#b75352d53c4e74089fa9660ad38abcb68ca5e0d1"
 dependencies = [
  "bitflags 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "czmq-sys 0.0.1 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
@@ -34,7 +34,7 @@ dependencies = [
 [[package]]
 name = "czmq-sys"
 version = "0.0.1"
-source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#00f43dbb4ff61f5a9488d057b8d2f70921083d96"
+source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#b75352d53c4e74089fa9660ad38abcb68ca5e0d1"
 dependencies = [
  "libc 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -42,7 +42,7 @@ dependencies = [
 [[package]]
 name = "intecture-api"
 version = "0.1.1"
-source = "git+https://github.com/betweenlines/intecture-api.git?branch=dev#652dbfcccaae6ed7646b5bb03c3a3915291fa53a"
+source = "git+https://github.com/betweenlines/intecture-api.git?branch=dev#43c5c64645f5dba330b3ee39b2f4dda7df7d76d9"
 dependencies = [
  "lazy_static 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
