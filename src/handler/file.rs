@@ -7,7 +7,7 @@
 // modified, or distributed except according to those terms.
 
 use config::agent::AgentConf;
-use czmq::{ZCert, ZSock};
+use czmq::{ZCert, ZSock, ZSockType};
 use error::Result;
 use file::{File, convert_opt_args};
 use msg::Msg;
@@ -39,26 +39,25 @@ impl Handler<FileHandler> for FileHandler {
     }
 
     fn run(&self) -> Result<()> {
-        println!("0");
-        let upload_sock = try!(ZSock::new_sub(&format!("tcp://*:{}", self.conf.upload_port), None));
-        println!("1");
+        let upload_sock = ZSock::new(ZSockType::SUB);
+        self.cert.apply(&upload_sock);
         upload_sock.set_zap_domain("intecture");
         upload_sock.set_curve_server(true);
+        upload_sock.set_subscribe("");
         upload_sock.set_rcvhwm(TOTAL_SLOTS as i32);
-        self.cert.apply(&upload_sock);
-println!("2");
+        try!(upload_sock.bind(&format!("tcp://*:{}", self.conf.upload_port)));
+
         let download_sock = try!(ZSock::new_pub(&format!("tcp://*:{}", self.conf.download_port)));
-println!("3");
+        self.cert.apply(&download_sock);
         download_sock.set_zap_domain("intecture");
         download_sock.set_curve_server(true);
-        self.cert.apply(&download_sock);
 
         let api_sock = try!(ZSock::new_pair("inproc://api_file_link"));
-println!("4");
+
         let queue_sock = try!(ZSock::new_pull("inproc://slice_queue"));
         let queue_api_sock = try!(ZSock::new_push("inproc://slice_queue"));
         let queue_file_sock = try!(ZSock::new_push("inproc://slice_queue"));
-println!("5");
+
         let files = Arc::new(RwLock::new(HashMap::new()));
         let files_c = files.clone();
 

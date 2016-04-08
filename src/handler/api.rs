@@ -7,7 +7,7 @@
 // modified, or distributed except according to those terms.
 
 use config::agent::AgentConf;
-use czmq::{ZCert, ZSock};
+use czmq::{ZCert, ZFrame, ZSock};
 use error::{Error, Result};
 use inapi::{Command, Directory, DirectoryOpts, File, Host, ProviderFactory, Service, ServiceRunnable, Telemetry};
 use msg::Msg;
@@ -31,35 +31,21 @@ impl Handler<ApiHandler> for ApiHandler {
     fn run(&self) -> Result<()> {
         let mut host = Host::new();
 
-        let api_sock = ZSock::new(::zmq::REP);
+        let api_sock = try!(ZSock::new_rep(&format!("tcp://*:{}", self.conf.api_port)));
+        self.cert.apply(&api_sock);
         api_sock.set_zap_domain("intecture");
         api_sock.set_curve_server(true);
-        self.cert.apply(&api_sock);
-
-        let m = ::czmq::ZMonitor::new(&api_sock).unwrap();
-        m.set_attrs(&[::czmq::ZMonitorEvents::All]).unwrap();
-        m.start().unwrap();
-
-        api_sock.bind(&format!("tcp://*:{}", self.conf.api_port)).unwrap();
-
-        for _ in 0..20 {
-            println!("Agent - {:?}", m.get_attr().unwrap().unwrap());
-        }
 
         let file_sock = try!(ZSock::new_pair("inproc://api_file_link"));
 
         loop {
-            let endpoint: String;
+            let frame: ZFrame;
+            let endpoint: &str;
 
-            match api_sock.recv_str() {
-                Ok(result) => match result {
-                    Ok(msg) => endpoint = msg,
-                    Err(_) => continue,
-                },
-                Err(_) => continue,
-            }
+            if let Ok(f) = ZFrame::recv(&api_sock) { frame = f; } else { continue; }
+            if let Ok(Ok(e)) = frame.data() { endpoint = e; } else { continue; }
 
-            let result = match endpoint.as_ref() {
+            let result = match endpoint {
                 "command::exec" => command_exec(&api_sock, &mut host),
                 "directory::is_directory" => directory_is_directory(&api_sock, &mut host),
                 "directory::exists" => directory_exists(&api_sock, &mut host),
