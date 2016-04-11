@@ -91,20 +91,3 @@ impl convert::From<json::EncoderError> for Error {
         Error::JsonEncoder(err)
     }
 }
-
-#[cfg(feature = "remote-run")]
-#[derive(Debug)]
-pub struct MissingFrame {
-    name: String,
-    order: u8,
-}
-
-#[cfg(feature = "remote-run")]
-impl MissingFrame {
-    pub fn new(name: &str, order: u8) -> MissingFrame {
-        MissingFrame {
-            name: name.to_string(),
-            order: order,
-        }
-    }
-}
