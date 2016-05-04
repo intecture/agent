@@ -17,11 +17,14 @@ impl Msg {
     /// of args from `sock` to be between `min` and `max`.
     /// If max = None then we allow a variable number of args.
     pub fn expect_recv(sock: &ZSock, min: usize, max: Option<usize>, block: bool) -> Result<ZMsg> {
-        // Avoid blocking unless it is explicitly required.
-        let zmsg = if sock.rcvmore() || block {
+        let zmsg = if block {
             try!(ZMsg::recv(sock))
         } else {
-            ZMsg::new()
+            let rcvtimeo = sock.rcvtimeo();
+            sock.set_rcvtimeo(Some(0));
+            let result = ZMsg::recv(sock);
+            sock.set_rcvtimeo(rcvtimeo);
+            result.unwrap_or(ZMsg::new())
         };
 
         if min > zmsg.size() || (max.is_some() && max.unwrap() < zmsg.size()) {
