@@ -6,17 +6,18 @@
 // https://www.tldrlegal.com/l/mpl-2.0>. This file may not be copied,
 // modified, or distributed except according to those terms.
 
-mod api;
-mod file;
+use zdaemon::ConfigFile;
 
-use config::agent::AgentConf;
-use czmq::ZCert;
-use error::Result;
-use std::sync::Arc;
-pub use self::api::ApiHandler;
-pub use self::file::FileHandler;
-
-pub trait Handler<T> {
-    fn new(conf: Arc<AgentConf>, cert: Arc<ZCert>) -> T;
-    fn run(&self) -> Result<()>;
+#[derive(Debug)]
+#[derive(RustcDecodable, RustcEncodable)]
+pub struct Config {
+    pub auth_server: String,
+    pub auth_server_port: u32,
+    pub auth_server_cert: String,
+    pub server_cert: String,
+    pub api_port: u32,
+    pub filexfer_port: u32,
+    pub file_threads: u32,
 }
+
+impl ConfigFile for Config {}

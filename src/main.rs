@@ -8,48 +8,51 @@
 
 extern crate czmq;
 extern crate inapi;
+extern crate inauth_client;
 extern crate rustc_serialize;
 #[cfg(test)]
 extern crate tempdir;
+extern crate zdaemon;
+extern crate zfilexfer;
 
+mod api;
 mod config;
 mod error;
-mod file;
-mod handler;
-mod msg;
 
-use config::agent::AgentConf;
-use czmq::{ZAuth, ZCert};
+use config::Config;
+use czmq::{ZCert, ZSock};
 use error::Error;
-use handler::{ApiHandler, FileHandler, Handler};
+use inauth_client::{CertType, ZapHandler};
 use std::fmt::{Debug, Display};
 use std::process::exit;
 use std::result::Result as StdResult;
-use std::sync::Arc;
-use std::thread;
+use zdaemon::Service;
+use zfilexfer::Server as FileServer;
 
 fn main() {
-    let agent_conf = Arc::new(try_exit(AgentConf::load_path(None)));
+    let mut service: Service<Config> = try_exit(Service::load("auth.json"));
+    let server_cert = try_exit(ZCert::load(&service.get_config().unwrap().server_cert));
+    let auth_cert = try_exit(ZCert::load(&service.get_config().unwrap().auth_server_cert));
 
-    let zauth = try_exit(ZAuth::new());
-    try_exit(zauth.load_curve(Some(&agent_conf.users_path)));
+    let _auth = ZapHandler::new(
+        CertType::User,
+        &server_cert,
+        &auth_cert,
+        &service.get_config().unwrap().auth_server,
+        service.get_config().unwrap().auth_server_port);
 
-    let server_cert = Arc::new(try_exit(ZCert::load(&agent_conf.server_cert)));
+    let api_endpoint = try_exit(api::endpoint(service.get_config().unwrap().api_port, &server_cert));
+    try_exit(service.add_endpoint(api_endpoint));
 
-    let api = ApiHandler::new(agent_conf.clone(), server_cert.clone());
-    let api_thread = thread::spawn(move || {
-        // XXX This error should be logged.
-        try_exit(api.run());
-    });
+    let file_sock = try_exit(ZSock::new_rep(&format!("tcp://*:{}", service.get_config().unwrap().filexfer_port)));
+    server_cert.apply(&file_sock);
+    file_sock.set_zap_domain("intecture");
+    file_sock.set_curve_server(true);
 
-    let file = FileHandler::new(agent_conf.clone(), server_cert.clone());
-    let file_thread = thread::spawn(move || {
-        // XXX This error should be logged.
-        try_exit(file.run());
-    });
+    let file_endpoint = try_exit(FileServer::new(file_sock, service.get_config().unwrap().file_threads));
+    try_exit(service.add_endpoint(file_endpoint));
 
-    api_thread.join().unwrap();
-    file_thread.join().unwrap();
+    try_exit(service.start(None));
 }
 
 fn try_exit<T, E>(r: StdResult<T, E>) -> T

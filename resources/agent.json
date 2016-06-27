@@ -1,7 +1,8 @@
 {
+	"auth_server": "127.0.0.1",
+	"auth_server_port": 7101,
+	"auth_server_cert": "<CFGPATH>/auth.crt",
 	"server_cert": "<CFGPATH>/server.crt",
-	"users_path": "<CFGPATH>/users/",
 	"api_port": 7101,
-	"upload_port": 7102,
-	"download_port": 7103
+	"filexfer_port": 7102,
 }
