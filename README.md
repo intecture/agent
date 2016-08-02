@@ -1,4 +1,4 @@
-# Intecture [![Build Status](https://travis-ci.org/betweenlines/intecture-agent.svg?branch=master)](https://travis-ci.org/betweenlines/intecture-agent)
+# Intecture [![Build Status](https://travis-ci.org/intecture/agent.svg?branch=master)](https://travis-ci.org/intecture/agent)
 
 Intecture is a developer friendly, language agnostic configuration management tool for server systems.
 
@@ -29,8 +29,8 @@ First, as this project is written in Rust, you'll need...well, [Rust!](https://w
 Next, clone this repository to your local machine and use the Makefile to build it:
 
 ```
-$ git clone https://github.com/betweenlines/intecture-agent.git
-$ cd intecture-agent/
+$ git clone https://github.com/intecture/agent.git
+$ cd agent/
 $ make
 $ make test && sudo make install
 ```
@@ -44,7 +44,7 @@ Once this has finished, you should have a shiny new binary called *inagent*, whi
 Run the uninstall target on the Makefile:
 
 ```
-$ cd intecture-agent/
+$ cd agent/
 $ sudo make uninstall
 ```
 
