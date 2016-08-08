@@ -45,7 +45,7 @@ fn main() {
     let api_endpoint = try_exit(api::endpoint(service.get_config().unwrap().api_port, &server_cert));
     try_exit(service.add_endpoint(api_endpoint));
 
-    let file_sock = ZSock::new(ZSockType::REP);
+    let file_sock = ZSock::new(ZSockType::ROUTER);
     server_cert.apply(&file_sock);
     file_sock.set_zap_domain("agent.intecture");
     file_sock.set_curve_server(true);

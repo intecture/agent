@@ -46,7 +46,7 @@ impl FileApi {
     }
 
     pub fn delete(&self, sock: &ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(&sock, 2, Some(2), false));
+        let request = try!(ZMsg::expect_recv(&sock, 1, Some(1), false));
         let file = try!(File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
         try!(file.delete(&mut self.host.borrow_mut()));
         let msg = try!(ZMsg::new_ok());
