@@ -13,7 +13,7 @@ mod package;
 mod service;
 mod telemetry;
 
-use czmq::{ZCert, ZFrame, ZMsg, ZSock};
+use czmq::{ZCert, ZFrame, ZMsg, ZSock, ZSockType};
 use error::Result;
 use inapi::Host;
 use self::command::CommandApi;
@@ -28,10 +28,11 @@ use std::result::Result as StdResult;
 use zdaemon::{Api, Error as DError, ZMsgExtended};
 
 pub fn endpoint(api_port: u32, cert: &ZCert) -> Result<Api> {
-    let api_sock = try!(ZSock::new_rep(&format!("tcp://*:{}", api_port)));
+    let api_sock = ZSock::new(ZSockType::REP);
     cert.apply(&api_sock);
-    api_sock.set_zap_domain("intecture");
+    api_sock.set_zap_domain("agent.intecture");
     api_sock.set_curve_server(true);
+    try!(api_sock.bind(&format!("tcp://*:{}", api_port)));
 
     let mut api = Api::new(api_sock);
 

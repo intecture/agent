@@ -48,6 +48,7 @@ impl DirectoryApi {
 
     pub fn create(&self, sock: &ZSock) -> Result<()> {
         let request = try!(ZMsg::expect_recv(&sock, 2, Some(2), false));
+
         let dir = try!(Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
 
         let mut opts = vec![];

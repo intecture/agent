@@ -20,7 +20,7 @@ mod config;
 mod error;
 
 use config::Config;
-use czmq::{ZCert, ZSock};
+use czmq::{ZCert, ZSock, ZSockType};
 use error::Error;
 use inauth_client::{CertType, ZapHandler};
 use std::fmt::{Debug, Display};
@@ -45,10 +45,11 @@ fn main() {
     let api_endpoint = try_exit(api::endpoint(service.get_config().unwrap().api_port, &server_cert));
     try_exit(service.add_endpoint(api_endpoint));
 
-    let file_sock = try_exit(ZSock::new_rep(&format!("tcp://*:{}", service.get_config().unwrap().filexfer_port)));
+    let file_sock = ZSock::new(ZSockType::REP);
     server_cert.apply(&file_sock);
-    file_sock.set_zap_domain("intecture");
+    file_sock.set_zap_domain("agent.intecture");
     file_sock.set_curve_server(true);
+    try_exit(file_sock.bind(&format!("tcp://*:{}", service.get_config().unwrap().filexfer_port)));
 
     let file_endpoint = try_exit(FileServer::new(file_sock, service.get_config().unwrap().filexfer_threads));
     try_exit(service.add_endpoint(file_endpoint));
