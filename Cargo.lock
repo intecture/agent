@@ -1,5 +1,5 @@
 [root]
-name = "agent"
+name = "intecture-agent"
 version = "0.1.1"
 dependencies = [
  "czmq 0.0.4 (git+https://github.com/petehayes102/rust-czmq.git?tag=0.0.4)",
