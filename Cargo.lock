@@ -94,7 +94,7 @@ dependencies = [
 [[package]]
 name = "intecture-auth"
 version = "0.0.1"
-source = "git+https://github.com/intecture/auth.git?branch=dev#f6a2687cd17b376e4ea7912d03ca3b9894b1ae6f"
+source = "git+https://github.com/intecture/auth.git?branch=dev#dd6b4b4a9e1beee4f5ff6f9cdb5158cb256fa3ab"
 dependencies = [
  "czmq 0.0.4 (git+https://github.com/petehayes102/rust-czmq.git?tag=0.0.4)",
  "docopt 0.6.82 (registry+https://github.com/rust-lang/crates.io-index)",

@@ -35,7 +35,7 @@ fn main() {
     let auth_cert = try_exit(ZCert::load(&service.get_config().unwrap().auth_server_cert));
 
     let _auth = ZapHandler::new(
-        CertType::User,
+        Some(CertType::User),
         &server_cert,
         &auth_cert,
         &service.get_config().unwrap().auth_server,
