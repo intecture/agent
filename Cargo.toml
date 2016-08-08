@@ -17,7 +17,7 @@ tempdir = "0.3.*"
 [dependencies]
 
 czmq = { git = "https://github.com/petehayes102/rust-czmq.git", tag = "0.0.4" }
-intecture-auth = { git = "https://github.com/intecture/auth.git" }
+intecture-auth = { git = "https://github.com/intecture/auth.git", branch = "dev" }
 rustc-serialize = "0.3.*"
 zdaemon = { git = "https://github.com/betweenlines/zdaemon.git" }
 zfilexfer = { git = "https://github.com/betweenlines/zfilexfer.git" }

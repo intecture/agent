@@ -30,7 +30,7 @@ use zdaemon::Service;
 use zfilexfer::Server as FileServer;
 
 fn main() {
-    let mut service: Service<Config> = try_exit(Service::load("auth.json"));
+    let mut service: Service<Config> = try_exit(Service::load("agent.json"));
     let server_cert = try_exit(ZCert::load(&service.get_config().unwrap().server_cert));
     let auth_cert = try_exit(ZCert::load(&service.get_config().unwrap().auth_server_cert));
 
@@ -39,7 +39,8 @@ fn main() {
         &server_cert,
         &auth_cert,
         &service.get_config().unwrap().auth_server,
-        service.get_config().unwrap().auth_server_port);
+        service.get_config().unwrap().auth_server_port,
+        false);
 
     let api_endpoint = try_exit(api::endpoint(service.get_config().unwrap().api_port, &server_cert));
     try_exit(service.add_endpoint(api_endpoint));
@@ -49,7 +50,7 @@ fn main() {
     file_sock.set_zap_domain("intecture");
     file_sock.set_curve_server(true);
 
-    let file_endpoint = try_exit(FileServer::new(file_sock, service.get_config().unwrap().file_threads));
+    let file_endpoint = try_exit(FileServer::new(file_sock, service.get_config().unwrap().filexfer_threads));
     try_exit(service.add_endpoint(file_endpoint));
 
     try_exit(service.start(None));

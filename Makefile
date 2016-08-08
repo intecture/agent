@@ -11,7 +11,7 @@ else
 endif
 
 install:
-	mkdir -p $(PREFIX)/etc/intecture/users
+	mkdir -p $(PREFIX)/etc/intecture
 	sed 's~<CFGPATH>~$(PREFIX)/etc/intecture~' resources/agent.json > $(PREFIX)/etc/intecture/agent.json
 	chmod 0644 $(PREFIX)/etc/intecture/agent.json
 	install -m 0755 target/$(TARGET)/inagent $(PREFIX)/bin/

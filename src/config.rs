@@ -17,7 +17,7 @@ pub struct Config {
     pub server_cert: String,
     pub api_port: u32,
     pub filexfer_port: u32,
-    pub file_threads: u32,
+    pub filexfer_threads: u32,
 }
 
 impl ConfigFile for Config {}
