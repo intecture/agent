@@ -18,9 +18,7 @@ install:
 uninstall:
 	rm -f $(PREFIX)/bin/inagent
 	rm -f $(PREFIX)/etc/intecture/agent.json
-	if [ ! "$(ls -A /$(PREFIX)/etc/intecture)" ]; then\
-		rmdir $(PREFIX)/etc/intecture; \\
-	fi
+	rmdir --ignore-fail-on-non-empty $(PREFIX)/etc/intecture
 
 test:
 ifeq ($(TARGET), release)
