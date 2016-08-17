@@ -21,11 +21,15 @@ impl ServiceApi {
         let result = try!(service.action(host, &request.popstr().unwrap().unwrap()));
 
         let msg = try!(ZMsg::new_ok());
-        try!(msg.send_multi(&sock, &[
-            &result.exit_code.to_string(),
-            &result.stdout,
-            &result.stderr,
-        ]));
+        if let Some(r) = result {
+            try!(msg.send_multi(&sock, &[
+                &r.exit_code.to_string(),
+                &r.stdout,
+                &r.stderr,
+            ]));
+        } else {
+            try!(msg.send(sock));
+        }
         Ok(())
     }
 }

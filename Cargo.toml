@@ -24,8 +24,9 @@ zfilexfer = { git = "https://github.com/betweenlines/zfilexfer.git", tag = "0.0.
 
 [dependencies.intecture-api]
 
-version = "0.2.1"
 git = "https://github.com/intecture/api.git"
+branch = "dev"
+# version = "0.2.1"
 default-features = false
 features = ["local-run"]
 

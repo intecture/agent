@@ -1,9 +1,9 @@
 [root]
 name = "intecture-agent"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?tag=0.0.5)",
- "intecture-api 0.2.1 (git+https://github.com/intecture/api.git)",
+ "intecture-api 0.2.1 (git+https://github.com/intecture/api.git?branch=dev)",
  "intecture-auth 0.0.2 (git+https://github.com/intecture/auth.git?tag=0.0.2)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempdir 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -43,9 +43,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "czmq"
+version = "0.0.5"
+source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#3280cd01608e3c0e86480baa283de05998334f52"
+dependencies = [
+ "bitflags 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "czmq-sys 0.0.3 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
+ "zmq 0.8.0 (git+https://github.com/petehayes102/rust-zmq.git?branch=tmp-master)",
+]
+
+[[package]]
 name = "czmq-sys"
 version = "0.0.3"
 source = "git+https://github.com/petehayes102/rust-czmq.git?tag=0.0.5#f98429ba967b0fde18d385756dbca61e0f6cfd3e"
+dependencies = [
+ "libc 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "czmq-sys"
+version = "0.0.3"
+source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#3280cd01608e3c0e86480baa283de05998334f52"
 dependencies = [
  "libc 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -64,19 +82,19 @@ dependencies = [
 [[package]]
 name = "intecture-api"
 version = "0.2.1"
-source = "git+https://github.com/intecture/api.git#d801a8f1011d24d64958be70bf15ac446a8c248e"
+source = "git+https://github.com/intecture/api.git?branch=dev#d644551794e7794f66d6afba55f94e3093fe5f7e"
 dependencies = [
  "lazy_static 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.73 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
- "zfilexfer 0.0.1 (git+https://github.com/betweenlines/zfilexfer.git?tag=0.0.1)",
+ "zfilexfer 0.0.1 (git+https://github.com/betweenlines/zfilexfer.git?branch=dev)",
 ]
 
 [[package]]
 name = "intecture-auth"
 version = "0.0.2"
-source = "git+https://github.com/intecture/auth.git?tag=0.0.2#7eee0a5bcac0227971b610d4f486f5c2a0188777"
+source = "git+https://github.com/intecture/auth.git?tag=0.0.2#992774d9beb4f1aa1b91a6959676230fd829709b"
 dependencies = [
  "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?tag=0.0.5)",
  "docopt 0.6.82 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -207,6 +225,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "zdaemon"
+version = "0.0.1"
+source = "git+https://github.com/betweenlines/zdaemon.git?branch=dev#74ab8887fa9a73b5dac04929ff9469e951931c6e"
+dependencies = [
+ "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
+ "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "zfilexfer"
 version = "0.0.1"
 source = "git+https://github.com/betweenlines/zfilexfer.git?tag=0.0.1#8044e4695bd24f0669095ea8676228700e3b411f"
@@ -215,6 +242,17 @@ dependencies = [
  "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?tag=0.0.5)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "zdaemon 0.0.1 (git+https://github.com/betweenlines/zdaemon.git?tag=0.0.1)",
+]
+
+[[package]]
+name = "zfilexfer"
+version = "0.0.1"
+source = "git+https://github.com/betweenlines/zfilexfer.git?branch=dev#9c3787a6c5da95ab3f459a56629c97b80d81bb2c"
+dependencies = [
+ "crc 1.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
+ "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zdaemon 0.0.1 (git+https://github.com/betweenlines/zdaemon.git?branch=dev)",
 ]
 
 [[package]]
