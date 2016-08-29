@@ -1,0 +1,78 @@
+#!/bin/sh
+#
+# inagent - this script starts and stops the inagent daemon
+#
+# chkconfig:   - 85 15
+# description:  Agent component for Intecture infrastructure
+# processname: inagent
+# config:      /usr/local/etc/intecture/agent.json
+# pidfile:     /var/run/inagent.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ "$NETWORKING" = "no" ] && exit 0
+
+inagent="/usr/local/bin/inagent"
+config="/usr/local/etc/intecture/agent.json"
+prog="inagent"
+pidfile="/var/run/${prog}.pid"
+
+start() {
+    [ -x $inagent ] || exit 5
+    [ -f $config ] || exit 6
+    echo -n $"Starting $prog: "
+    daemon $inagent --pidfile $pidfile
+    retval=$?
+    echo
+    return $retval
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc -p $pidfile $prog
+    retval=$?
+    echo
+    return $retval
+}
+
+restart() {
+    stop
+    start
+}
+
+rh_status() {
+    status $prog
+}
+
+rh_status_q() {
+    rh_status >/dev/null 2>&1
+}
+
+case "$1" in
+    start)
+        rh_status_q && exit 0
+        $1
+        ;;
+    stop)
+        rh_status_q || exit 0
+        $1
+        ;;
+    restart)
+        $1
+        ;;
+    status)
+        rh_status
+        ;;
+    condrestart|try-restart)
+        rh_status_q || exit 7
+        restart
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart}"
+        exit 2
+esac

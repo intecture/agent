@@ -1,0 +1,15 @@
+#!/bin/sh
+
+. /etc/rc.subr
+
+name="inagent"
+rcvar=inagent_enable
+
+command="/usr/local/bin/inagent"
+pidfile="/var/run/${name}.pid"
+required_files=/usr/local/etc/intecture/agent.json
+
+[ -z "$inagent_enable" ] 		&& inagent_enable="NO"
+
+load_rc_config $name
+run_rc_command "$1"
