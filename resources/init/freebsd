@@ -2,14 +2,25 @@
 
 . /etc/rc.subr
 
-name="inagent"
+name=inagent
 rcvar=inagent_enable
+load_rc_config $name
 
-command="/usr/local/bin/inagent"
+command="/usr/local/bin/${name}"
 pidfile="/var/run/${name}.pid"
 required_files=/usr/local/etc/intecture/agent.json
 
-[ -z "$inagent_enable" ] 		&& inagent_enable="NO"
+start_cmd=inagent_start
+stop_postcmd=inagent_cleanup
 
-load_rc_config $name
+inagent_start() {
+    echo "Starting inagent."
+    /usr/bin/touch ${pidfile}
+    /usr/sbin/daemon -cf -p ${pidfile} ${command}
+}
+
+inagent_cleanup() {
+    /bin/rm -f ${pidfile}
+}
+
 run_rc_command "$1"
