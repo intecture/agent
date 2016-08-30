@@ -6,7 +6,6 @@
 # description:  Agent component for Intecture infrastructure
 # processname: inagent
 # config:      /usr/local/etc/intecture/agent.json
-# pidfile:     /var/run/inagent.pid
 
 # Source function library.
 . /etc/rc.d/init.d/functions
@@ -17,16 +16,17 @@
 # Check that networking is up.
 [ "$NETWORKING" = "no" ] && exit 0
 
+export LD_LIBRARY_PATH=/usr/local/lib
+
 inagent="/usr/local/bin/inagent"
 config="/usr/local/etc/intecture/agent.json"
 prog="inagent"
-pidfile="/var/run/${prog}.pid"
 
 start() {
     [ -x $inagent ] || exit 5
     [ -f $config ] || exit 6
     echo -n $"Starting $prog: "
-    daemon $inagent --pidfile $pidfile
+    daemon $inagent "&"
     retval=$?
     echo
     return $retval
@@ -34,7 +34,7 @@ start() {
 
 stop() {
     echo -n $"Stopping $prog: "
-    killproc -p $pidfile $prog
+    killproc $prog
     retval=$?
     echo
     return $retval
