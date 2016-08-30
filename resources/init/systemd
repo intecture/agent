@@ -3,7 +3,8 @@ Description=Agent component for Intecture infrastructure
 After=network.target
 
 [Service]
-Type=forking
+Type=simple
+Environment=LD_LIBRARY_PATH=/usr/local/lib
 PIDFile=/run/inagent.pid
 ExecStartPre=/usr/bin/rm -f /run/inagent.pid
 ExecStart=/usr/local/bin/inagent
