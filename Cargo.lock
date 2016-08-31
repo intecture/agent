@@ -45,7 +45,7 @@ dependencies = [
 [[package]]
 name = "czmq"
 version = "0.0.5"
-source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#3280cd01608e3c0e86480baa283de05998334f52"
+source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#853fbcb1dfce58d10cca89f20dc67ffa524feb36"
 dependencies = [
  "bitflags 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "czmq-sys 0.0.3 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
@@ -63,7 +63,7 @@ dependencies = [
 [[package]]
 name = "czmq-sys"
 version = "0.0.3"
-source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#3280cd01608e3c0e86480baa283de05998334f52"
+source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#853fbcb1dfce58d10cca89f20dc67ffa524feb36"
 dependencies = [
  "libc 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -232,7 +232,7 @@ dependencies = [
 [[package]]
 name = "zfilexfer"
 version = "0.0.1"
-source = "git+https://github.com/betweenlines/zfilexfer.git?branch=dev#9c3787a6c5da95ab3f459a56629c97b80d81bb2c"
+source = "git+https://github.com/betweenlines/zfilexfer.git?branch=dev#2560c6a68d3c83a283a9ef269b3f579589b00de7"
 dependencies = [
  "crc 1.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
