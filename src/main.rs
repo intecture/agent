@@ -49,6 +49,7 @@ fn main() {
     server_cert.apply(&file_sock);
     file_sock.set_zap_domain("agent.intecture");
     file_sock.set_curve_server(true);
+    file_sock.set_linger(1000);
     try_exit(file_sock.bind(&format!("tcp://*:{}", service.get_config().unwrap().filexfer_port)));
 
     let file_endpoint = try_exit(FileServer::new(file_sock, service.get_config().unwrap().filexfer_threads));

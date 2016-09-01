@@ -32,6 +32,7 @@ pub fn endpoint(api_port: u32, cert: &ZCert) -> Result<Api> {
     cert.apply(&api_sock);
     api_sock.set_zap_domain("agent.intecture");
     api_sock.set_curve_server(true);
+    api_sock.set_linger(1000);
     try!(api_sock.bind(&format!("tcp://*:{}", api_port)));
 
     let mut api = Api::new(api_sock);
