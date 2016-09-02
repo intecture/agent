@@ -21,49 +21,46 @@ mod error;
 
 use config::Config;
 use czmq::{ZCert, ZSock, ZSockType};
-use error::Error;
+use error::Result;
 use inauth_client::{CertType, ZapHandler};
-use std::fmt::{Debug, Display};
 use std::process::exit;
-use std::result::Result as StdResult;
-use zdaemon::Service;
+use zdaemon::{ConfigFile, Service};
 use zfilexfer::Server as FileServer;
 
 fn main() {
-    let mut service: Service<Config> = try_exit(Service::load("agent.json"));
-    let server_cert = try_exit(ZCert::load(&service.get_config().unwrap().server_cert));
-    let auth_cert = try_exit(ZCert::load(&service.get_config().unwrap().auth_server_cert));
+    if let Err(e) = start() {
+        println!("{}", e);
+        exit(1);
+    }
+}
+
+fn start() -> Result<()> {
+    let mut service = try!(Service::new());
+    let config = try!(Config::search("intecture/agent.json", None));
+    let server_cert = try!(ZCert::load(&config.server_cert));
+    let auth_cert = try!(ZCert::load(&config.auth_server_cert));
 
     let _auth = ZapHandler::new(
         Some(CertType::User),
         &server_cert,
         &auth_cert,
-        &service.get_config().unwrap().auth_server,
-        service.get_config().unwrap().auth_server_port,
+        &config.auth_server,
+        config.auth_server_port,
         false);
 
-    let api_endpoint = try_exit(api::endpoint(service.get_config().unwrap().api_port, &server_cert));
-    try_exit(service.add_endpoint(api_endpoint));
+    let api_endpoint = try!(api::endpoint(config.api_port, &server_cert));
+    try!(service.add_endpoint(api_endpoint));
 
     let file_sock = ZSock::new(ZSockType::ROUTER);
     server_cert.apply(&file_sock);
     file_sock.set_zap_domain("agent.intecture");
     file_sock.set_curve_server(true);
     file_sock.set_linger(1000);
-    try_exit(file_sock.bind(&format!("tcp://*:{}", service.get_config().unwrap().filexfer_port)));
+    try!(file_sock.bind(&format!("tcp://*:{}", config.filexfer_port)));
 
-    let file_endpoint = try_exit(FileServer::new(file_sock, service.get_config().unwrap().filexfer_threads));
-    try_exit(service.add_endpoint(file_endpoint));
+    let file_endpoint = try!(FileServer::new(file_sock, config.filexfer_threads));
+    try!(service.add_endpoint(file_endpoint));
 
-    try_exit(service.start(None));
-}
-
-fn try_exit<T, E>(r: StdResult<T, E>) -> T
-    where E: Into<Error> + Debug + Display {
-    if let Err(e) = r {
-        println!("{}", e);
-        exit(1);
-    }
-
-    r.unwrap()
+    try!(service.start(true, None));
+    Ok(())
 }

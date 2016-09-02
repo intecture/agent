@@ -20,9 +20,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "bit-set"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "bit-vec 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "bit-vec"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "bitflags"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "chan"
+version = "0.1.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "chan-signal"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "bit-set 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "chan 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "crc"
@@ -95,7 +127,7 @@ dependencies = [
 [[package]]
 name = "intecture-auth"
 version = "0.0.2"
-source = "git+https://github.com/intecture/auth.git?branch=dev#219f20241c30653a58dfeb566cbee774f2010fc0"
+source = "git+https://github.com/intecture/auth.git?branch=dev#d23cc8afc253a2fa53bc66a3b11241f5124b1841"
 dependencies = [
  "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
  "docopt 0.6.83 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -112,6 +144,11 @@ dependencies = [
  "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "lazy_static"
+version = "0.1.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "lazy_static"
@@ -223,8 +260,10 @@ dependencies = [
 [[package]]
 name = "zdaemon"
 version = "0.0.1"
-source = "git+https://github.com/betweenlines/zdaemon.git?branch=dev#1e25df2f1a2c12c6fda13c804901ec369a2b4c88"
+source = "git+https://github.com/betweenlines/zdaemon.git?branch=dev#4366ab48ecaceb6df480e6cde0e30586068cc761"
 dependencies = [
+ "chan 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "chan-signal 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -232,7 +271,7 @@ dependencies = [
 [[package]]
 name = "zfilexfer"
 version = "0.0.1"
-source = "git+https://github.com/betweenlines/zfilexfer.git?branch=dev#2560c6a68d3c83a283a9ef269b3f579589b00de7"
+source = "git+https://github.com/betweenlines/zfilexfer.git?branch=dev#585dfe78cc1ab6511d0c398cc9d0dab86c80ad97"
 dependencies = [
  "crc 1.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
