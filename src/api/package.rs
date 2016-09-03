@@ -14,7 +14,7 @@ use zdaemon::ZMsgExtended;
 pub struct PackageApi;
 
 impl PackageApi {
-    pub fn default_provider(sock: &ZSock, host: &mut Host) -> Result<()> {
+    pub fn default_provider(sock: &mut ZSock, host: &mut Host) -> Result<()> {
         let provider = try!(ProviderFactory::create(host, None));
         let msg = try!(ZMsg::new_ok());
         try!(msg.addstr(&provider.get_providers().to_string()));

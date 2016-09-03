@@ -14,8 +14,8 @@ use zdaemon::ZMsgExtended;
 pub struct CommandApi;
 
 impl CommandApi {
-    pub fn exec(sock: &ZSock, host: &mut Host) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(&sock, 1, Some(1), false));
+    pub fn exec(sock: &mut ZSock, host: &mut Host) -> Result<()> {
+        let request = try!(ZMsg::expect_recv(sock, 1, Some(1), false));
         let cmd = Command::new(&request.popstr().unwrap().unwrap());
         let result = try!(cmd.exec(host));
 

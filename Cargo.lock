@@ -2,6 +2,8 @@
 name = "intecture-agent"
 version = "0.2.1"
 dependencies = [
+ "chan 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "chan-signal 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
  "intecture-api 0.2.1 (git+https://github.com/intecture/api.git?branch=dev)",
  "intecture-auth 0.0.2 (git+https://github.com/intecture/auth.git?branch=dev)",
@@ -77,11 +79,11 @@ dependencies = [
 [[package]]
 name = "czmq"
 version = "0.0.5"
-source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#853fbcb1dfce58d10cca89f20dc67ffa524feb36"
+source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#e534b9f783ca3cb50e2c1c995b7ab59c32e8c366"
 dependencies = [
  "bitflags 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "czmq-sys 0.0.3 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
- "zmq 0.8.0 (git+https://github.com/petehayes102/rust-zmq.git?branch=tmp-master)",
+ "zmq 0.8.0 (git+https://github.com/petehayes102/rust-zmq.git)",
 ]
 
 [[package]]
@@ -95,7 +97,7 @@ dependencies = [
 [[package]]
 name = "czmq-sys"
 version = "0.0.3"
-source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#853fbcb1dfce58d10cca89f20dc67ffa524feb36"
+source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#e534b9f783ca3cb50e2c1c995b7ab59c32e8c366"
 dependencies = [
  "libc 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -127,13 +129,15 @@ dependencies = [
 [[package]]
 name = "intecture-auth"
 version = "0.0.2"
-source = "git+https://github.com/intecture/auth.git?branch=dev#d23cc8afc253a2fa53bc66a3b11241f5124b1841"
+source = "git+https://github.com/intecture/auth.git?branch=dev#f2a2425867c13200a6a8a474ef0c3f00f029f4a0"
 dependencies = [
+ "chan 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "chan-signal 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
  "docopt 0.6.83 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "zdaemon 0.0.1 (git+https://github.com/betweenlines/zdaemon.git?branch=dev)",
- "zmq 0.8.0 (git+https://github.com/petehayes102/rust-zmq.git?branch=tmp-master)",
+ "zmq 0.8.0 (git+https://github.com/petehayes102/rust-zmq.git)",
 ]
 
 [[package]]
@@ -172,6 +176,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "pkg-config"
+version = "0.3.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "rand"
@@ -260,10 +269,8 @@ dependencies = [
 [[package]]
 name = "zdaemon"
 version = "0.0.1"
-source = "git+https://github.com/betweenlines/zdaemon.git?branch=dev#4366ab48ecaceb6df480e6cde0e30586068cc761"
+source = "git+https://github.com/betweenlines/zdaemon.git?branch=dev#22fe8824b335b441b6a88b42e20c051f2b769f34"
 dependencies = [
- "chan 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
- "chan-signal 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -271,7 +278,7 @@ dependencies = [
 [[package]]
 name = "zfilexfer"
 version = "0.0.1"
-source = "git+https://github.com/betweenlines/zfilexfer.git?branch=dev#585dfe78cc1ab6511d0c398cc9d0dab86c80ad97"
+source = "git+https://github.com/betweenlines/zfilexfer.git?branch=dev#e9fda2b2dadd179915df471c80657b571bf4228c"
 dependencies = [
  "crc 1.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
@@ -282,11 +289,30 @@ dependencies = [
 [[package]]
 name = "zmq"
 version = "0.8.0"
+source = "git+https://github.com/petehayes102/rust-zmq.git#5cd311a6127a7dd49920cc0a3f7f9501b155146c"
+dependencies = [
+ "libc 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zmq-sys 0.8.0 (git+https://github.com/petehayes102/rust-zmq.git)",
+]
+
+[[package]]
+name = "zmq"
+version = "0.8.0"
 source = "git+https://github.com/petehayes102/rust-zmq.git?branch=tmp-master#d42cabbe6b524be90bb67a4cffe72caa0cecf7d8"
 dependencies = [
  "libc 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "zmq-sys 0.8.0 (git+https://github.com/petehayes102/rust-zmq.git?branch=tmp-master)",
+]
+
+[[package]]
+name = "zmq-sys"
+version = "0.8.0"
+source = "git+https://github.com/petehayes102/rust-zmq.git#5cd311a6127a7dd49920cc0a3f7f9501b155146c"
+dependencies = [
+ "libc 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

@@ -15,7 +15,7 @@ use zdaemon::ZMsgExtended;
 pub struct TelemetryApi;
 
 impl TelemetryApi {
-    pub fn get(sock: &ZSock, host: &mut Host) -> Result<()> {
+    pub fn get(sock: &mut ZSock, host: &mut Host) -> Result<()> {
         let telemetry = try!(Telemetry::init(host));
         let json = try!(json::encode(&telemetry));
         let msg = try!(ZMsg::new_ok());

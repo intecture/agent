@@ -24,8 +24,8 @@ impl FileApi {
         })
     }
 
-    pub fn is_file(&self, sock: &ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(&sock, 1, Some(1), false));
+    pub fn is_file(&self, sock: &mut ZSock) -> Result<()> {
+        let request = try!(ZMsg::expect_recv(sock, 1, Some(1), false));
         let msg = try!(ZMsg::new_ok());
         match File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()) {
             Ok(_) => try!(msg.addstr("1")),
@@ -35,8 +35,8 @@ impl FileApi {
         Ok(())
     }
 
-    pub fn exists(&self, sock: &ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(&sock, 1, Some(1), false));
+    pub fn exists(&self, sock: &mut ZSock) -> Result<()> {
+        let request = try!(ZMsg::expect_recv(sock, 1, Some(1), false));
         let file = try!(File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
         let exists = try!(file.exists(&mut self.host.borrow_mut()));
         let msg = try!(ZMsg::new_ok());
@@ -45,8 +45,8 @@ impl FileApi {
         Ok(())
     }
 
-    pub fn delete(&self, sock: &ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(&sock, 1, Some(1), false));
+    pub fn delete(&self, sock: &mut ZSock) -> Result<()> {
+        let request = try!(ZMsg::expect_recv(sock, 1, Some(1), false));
         let file = try!(File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
         try!(file.delete(&mut self.host.borrow_mut()));
         let msg = try!(ZMsg::new_ok());
@@ -54,8 +54,8 @@ impl FileApi {
         Ok(())
     }
 
-    pub fn mv(&self, sock: &ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(&sock, 2, Some(2), false));
+    pub fn mv(&self, sock: &mut ZSock) -> Result<()> {
+        let request = try!(ZMsg::expect_recv(sock, 2, Some(2), false));
         let mut file = try!(File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
         try!(file.mv(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
         let msg = try!(ZMsg::new_ok());
@@ -63,8 +63,8 @@ impl FileApi {
         Ok(())
     }
 
-    pub fn copy(&self, sock: &ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(&sock, 2, Some(2), false));
+    pub fn copy(&self, sock: &mut ZSock) -> Result<()> {
+        let request = try!(ZMsg::expect_recv(sock, 2, Some(2), false));
         let file = try!(File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
         try!(file.copy(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
         let msg = try!(ZMsg::new_ok());
@@ -72,12 +72,12 @@ impl FileApi {
         Ok(())
     }
 
-    pub fn get_owner(&self, sock: &ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(&sock, 1, Some(1), false));
+    pub fn get_owner(&self, sock: &mut ZSock) -> Result<()> {
+        let request = try!(ZMsg::expect_recv(sock, 1, Some(1), false));
         let file = try!(File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
         let owner = try!(file.get_owner(&mut self.host.borrow_mut()));
         let msg = try!(ZMsg::new_ok());
-        try!(msg.send_multi(&sock, &[
+        try!(msg.send_multi(sock, &[
             &owner.user_name,
             &owner.user_uid.to_string(),
             &owner.group_name,
@@ -86,8 +86,8 @@ impl FileApi {
         Ok(())
     }
 
-    pub fn set_owner(&self, sock: &ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(&sock, 3, Some(3), false));
+    pub fn set_owner(&self, sock: &mut ZSock) -> Result<()> {
+        let request = try!(ZMsg::expect_recv(sock, 3, Some(3), false));
         let file = try!(File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
         try!(file.set_owner(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap(), &request.popstr().unwrap().unwrap()));
         let msg = try!(ZMsg::new_ok());
@@ -95,8 +95,8 @@ impl FileApi {
         Ok(())
     }
 
-    pub fn get_mode(&self, sock: &ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(&sock, 1, Some(1), false));
+    pub fn get_mode(&self, sock: &mut ZSock) -> Result<()> {
+        let request = try!(ZMsg::expect_recv(sock, 1, Some(1), false));
         let file = try!(File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
         let mode = try!(file.get_mode(&mut self.host.borrow_mut()));
         let msg = try!(ZMsg::new_ok());
@@ -105,8 +105,8 @@ impl FileApi {
         Ok(())
     }
 
-    pub fn set_mode(&self, sock: &ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(&sock, 2, Some(2), false));
+    pub fn set_mode(&self, sock: &mut ZSock) -> Result<()> {
+        let request = try!(ZMsg::expect_recv(sock, 2, Some(2), false));
         let file = try!(File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
         try!(file.set_mode(&mut self.host.borrow_mut(), request.popstr().unwrap().unwrap().parse::<u16>().unwrap()));
         let msg = try!(ZMsg::new_ok());
