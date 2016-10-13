@@ -20,7 +20,9 @@ chan = "0.1"
 chan-signal = "0.1"
 czmq = { git = "https://github.com/petehayes102/rust-czmq.git", branch = "dev" }
 intecture-auth = { git = "https://github.com/intecture/auth.git", branch = "dev" }
-rustc-serialize = "0.3.*"
+rustc-serialize = "0.3"
+serde = "0.8"
+serde_json = "0.8"
 zdaemon = { git = "https://github.com/betweenlines/zdaemon.git", branch = "dev" }
 zfilexfer = { git = "https://github.com/betweenlines/zfilexfer.git", branch = "dev" }
 

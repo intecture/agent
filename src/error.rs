@@ -9,6 +9,7 @@
 use czmq;
 use inapi;
 use rustc_serialize::json;
+use serde_json;
 use std::{convert, error, fmt, io, result};
 use zdaemon;
 use zfilexfer;
@@ -21,6 +22,7 @@ pub enum Error {
     Inapi(inapi::Error),
     Io(io::Error),
     JsonEncoder(json::EncoderError),
+    SerdeJson(serde_json::Error),
     ZDaemon(zdaemon::Error),
     ZFileXfer(zfilexfer::Error),
 }
@@ -32,6 +34,7 @@ impl fmt::Display for Error {
             Error::Inapi(ref e) => write!(f, "Intecture API error: {}", e),
             Error::Io(ref e) => write!(f, "IO error: {}", e),
             Error::JsonEncoder(ref e) => write!(f, "JSON encoder error: {}", e),
+            Error::SerdeJson(ref e) => write!(f, "Serde JSON error: {}", e),
             Error::ZDaemon(ref e) => write!(f, "ZDaemon error: {}", e),
             Error::ZFileXfer(ref e) => write!(f, "ZFileXfer error: {}", e),
         }
@@ -45,6 +48,7 @@ impl error::Error for Error {
             Error::Inapi(ref e) => e.description(),
             Error::Io(ref e) => e.description(),
             Error::JsonEncoder(ref e) => e.description(),
+            Error::SerdeJson(ref e) => e.description(),
             Error::ZDaemon(ref e) => e.description(),
             Error::ZFileXfer(ref e) => e.description(),
         }
@@ -72,6 +76,12 @@ impl convert::From<io::Error> for Error {
 impl convert::From<json::EncoderError> for Error {
     fn from(err: json::EncoderError) -> Error {
         Error::JsonEncoder(err)
+    }
+}
+
+impl convert::From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Error {
+        Error::SerdeJson(err)
     }
 }
 

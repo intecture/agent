@@ -37,7 +37,8 @@ pub fn endpoint(api_port: u32, cert: &ZCert) -> Result<Api> {
 
     let mut api = Api::new(api_sock);
 
-    let host = Rc::new(RefCell::new(Host::new()));
+    let path: Option<String> = None;
+    let host = Rc::new(RefCell::new(try!(Host::local(path))));
 
     let host_clone = host.clone();
     api.add("command::exec", move |sock: &mut ZSock, _: ZFrame| { let r = CommandApi::exec(sock, &mut host_clone.borrow_mut()); error_handler(sock, r) });

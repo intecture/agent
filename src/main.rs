@@ -12,6 +12,8 @@ extern crate czmq;
 extern crate inapi;
 extern crate inauth_client;
 extern crate rustc_serialize;
+extern crate serde;
+extern crate serde_json;
 #[cfg(test)]
 extern crate tempdir;
 extern crate zdaemon;
