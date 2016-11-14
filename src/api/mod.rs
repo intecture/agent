@@ -13,7 +13,7 @@ mod package;
 mod service;
 mod telemetry;
 
-use czmq::{ZCert, ZFrame, ZMsg, ZSock, ZSockType};
+use czmq::{ZCert, ZFrame, ZMsg, ZSock, SocketType};
 use error::Result;
 use inapi::Host;
 use self::command::CommandApi;
@@ -28,80 +28,80 @@ use std::result::Result as StdResult;
 use zdaemon::{Api, Error as DError, ZMsgExtended};
 
 pub fn endpoint(api_port: u32, cert: &ZCert) -> Result<Api> {
-    let mut api_sock = ZSock::new(ZSockType::REP);
+    let mut api_sock = ZSock::new(SocketType::ROUTER);
     cert.apply(&mut api_sock);
     api_sock.set_zap_domain("agent.intecture");
     api_sock.set_curve_server(true);
     api_sock.set_linger(1000);
-    try!(api_sock.bind(&format!("tcp://*:{}", api_port)));
+    api_sock.bind(&format!("tcp://*:{}", api_port))?;
 
     let mut api = Api::new(api_sock);
 
     let path: Option<String> = None;
-    let host = Rc::new(RefCell::new(try!(Host::local(path))));
+    let host = Rc::new(RefCell::new(Host::local(path)?));
 
     let host_clone = host.clone();
-    api.add("command::exec", move |sock: &mut ZSock, _: ZFrame| { let r = CommandApi::exec(sock, &mut host_clone.borrow_mut()); error_handler(sock, r) });
+    api.add("command::exec", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = CommandApi::exec(sock, &mut host_clone.borrow_mut(), &i); error_handler(sock, r, &i) });
 
     let directory_api = Rc::new(DirectoryApi::new(host.clone()));
     let directory_clone = directory_api.clone();
-    api.add("directory::is_directory", move |sock: &mut ZSock, _: ZFrame| { let r = directory_clone.is_directory(sock); error_handler(sock, r) });
+    api.add("directory::is_directory", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = directory_clone.is_directory(sock, &i); error_handler(sock, r, &i) });
     let directory_clone = directory_api.clone();
-    api.add("directory::exists", move |sock: &mut ZSock, _: ZFrame| { let r = directory_clone.exists(sock); error_handler(sock, r) });
+    api.add("directory::exists", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = directory_clone.exists(sock, &i); error_handler(sock, r, &i) });
     let directory_clone = directory_api.clone();
-    api.add("directory::create", move |sock: &mut ZSock, _: ZFrame| { let r = directory_clone.create(sock); error_handler(sock, r) });
+    api.add("directory::create", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = directory_clone.create(sock, &i); error_handler(sock, r, &i) });
     let directory_clone = directory_api.clone();
-    api.add("directory::delete", move |sock: &mut ZSock, _: ZFrame| { let r = directory_clone.delete(sock); error_handler(sock, r) });
+    api.add("directory::delete", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = directory_clone.delete(sock, &i); error_handler(sock, r, &i) });
     let directory_clone = directory_api.clone();
-    api.add("directory::mv", move |sock: &mut ZSock, _: ZFrame| { let r = directory_clone.mv(sock); error_handler(sock, r) });
+    api.add("directory::mv", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = directory_clone.mv(sock, &i); error_handler(sock, r, &i) });
     let directory_clone = directory_api.clone();
-    api.add("directory::get_owner", move |sock: &mut ZSock, _: ZFrame| { let r = directory_clone.get_owner(sock); error_handler(sock, r) });
+    api.add("directory::get_owner", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = directory_clone.get_owner(sock, &i); error_handler(sock, r, &i) });
     let directory_clone = directory_api.clone();
-    api.add("directory::set_owner", move |sock: &mut ZSock, _: ZFrame| { let r = directory_clone.set_owner(sock); error_handler(sock, r) });
+    api.add("directory::set_owner", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = directory_clone.set_owner(sock, &i); error_handler(sock, r, &i) });
     let directory_clone = directory_api.clone();
-    api.add("directory::get_mode", move |sock: &mut ZSock, _: ZFrame| { let r = directory_clone.get_mode(sock); error_handler(sock, r) });
+    api.add("directory::get_mode", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = directory_clone.get_mode(sock, &i); error_handler(sock, r, &i) });
     let directory_clone = directory_api.clone();
-    api.add("directory::set_mode", move |sock: &mut ZSock, _: ZFrame| { let r = directory_clone.set_mode(sock); error_handler(sock, r) });
+    api.add("directory::set_mode", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = directory_clone.set_mode(sock, &i); error_handler(sock, r, &i) });
 
-    let file_api = Rc::new(try!(FileApi::new(host.clone())));
+    let file_api = Rc::new(FileApi::new(host.clone())?);
     let file_clone = file_api.clone();
-    api.add("file::is_file", move |sock: &mut ZSock, _: ZFrame| { let r = file_clone.is_file(sock); error_handler(sock, r) });
+    api.add("file::is_file", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = file_clone.is_file(sock, &i); error_handler(sock, r, &i) });
     let file_clone = file_api.clone();
-    api.add("file::exists", move |sock: &mut ZSock, _: ZFrame| { let r = file_clone.exists(sock); error_handler(sock, r) });
+    api.add("file::exists", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = file_clone.exists(sock, &i); error_handler(sock, r, &i) });
     let file_clone = file_api.clone();
-    api.add("file::delete", move |sock: &mut ZSock, _: ZFrame| { let r = file_clone.delete(sock); error_handler(sock, r) });
+    api.add("file::delete", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = file_clone.delete(sock, &i); error_handler(sock, r, &i) });
     let file_clone = file_api.clone();
-    api.add("file::mv", move |sock: &mut ZSock, _: ZFrame| { let r = file_clone.mv(sock); error_handler(sock, r) });
+    api.add("file::mv", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = file_clone.mv(sock, &i); error_handler(sock, r, &i) });
     let file_clone = file_api.clone();
-    api.add("file::copy", move |sock: &mut ZSock, _: ZFrame| { let r = file_clone.copy(sock); error_handler(sock, r) });
+    api.add("file::copy", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = file_clone.copy(sock, &i); error_handler(sock, r, &i) });
     let file_clone = file_api.clone();
-    api.add("file::get_owner", move |sock: &mut ZSock, _: ZFrame| { let r = file_clone.get_owner(sock); error_handler(sock, r) });
+    api.add("file::get_owner", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = file_clone.get_owner(sock, &i); error_handler(sock, r, &i) });
     let file_clone = file_api.clone();
-    api.add("file::set_owner", move |sock: &mut ZSock, _: ZFrame| { let r = file_clone.set_owner(sock); error_handler(sock, r) });
+    api.add("file::set_owner", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = file_clone.set_owner(sock, &i); error_handler(sock, r, &i) });
     let file_clone = file_api.clone();
-    api.add("file::get_mode", move |sock: &mut ZSock, _: ZFrame| { let r = file_clone.get_mode(sock); error_handler(sock, r) });
+    api.add("file::get_mode", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = file_clone.get_mode(sock, &i); error_handler(sock, r, &i) });
     let file_clone = file_api.clone();
-    api.add("file::set_mode", move |sock: &mut ZSock, _: ZFrame| { let r = file_clone.set_mode(sock); error_handler(sock, r) });
-
-    let host_clone = host.clone();
-    api.add("package::default_provider", move |sock: &mut ZSock, _: ZFrame| { let r = PackageApi::default_provider(sock, &mut host_clone.borrow_mut()); error_handler(sock, r) });
+    api.add("file::set_mode", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = file_clone.set_mode(sock, &i); error_handler(sock, r, &i) });
 
     let host_clone = host.clone();
-    api.add("service::action", move |sock: &mut ZSock, _: ZFrame| { let r = ServiceApi::action(sock, &mut host_clone.borrow_mut()); error_handler(sock, r) });
+    api.add("package::default_provider", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = PackageApi::default_provider(sock, &mut host_clone.borrow_mut(), &i); error_handler(sock, r, &i) });
 
     let host_clone = host.clone();
-    api.add("telemetry", move |sock: &mut ZSock, _: ZFrame| { let r = TelemetryApi::get(sock, &mut host_clone.borrow_mut()); error_handler(sock, r) });
+    api.add("service::action", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = ServiceApi::action(sock, &mut host_clone.borrow_mut(), &i); error_handler(sock, r, &i) });
+
+    let host_clone = host.clone();
+    api.add("telemetry", move |sock: &mut ZSock, _: ZFrame, id: Option<Vec<u8>>| { let i = id.unwrap(); let r = TelemetryApi::get(sock, &mut host_clone.borrow_mut(), &i); error_handler(sock, r, &i) });
 
     Ok(api)
 }
 
-fn error_handler(sock: &mut ZSock, result: Result<()>) -> StdResult<(), DError> {
+fn error_handler(sock: &mut ZSock, result: Result<()>, router_id: &[u8]) -> StdResult<(), DError> {
     match result {
         Ok(_) => Ok(()),
         Err(e) => {
             let derror: DError = e.into();
-            let msg = try!(ZMsg::new_err(&derror));
-            try!(msg.send(sock));
+            let msg = ZMsg::new_err(&derror, Some(router_id))?;
+            msg.send(sock)?;
             Err(derror)
         }
     }
@@ -122,9 +122,10 @@ mod tests {
 
         let e = server.send_str("fail").unwrap_err();
         let e_desc = e.description().to_string();
-        assert!(error_handler(&mut client, Err(Error::Czmq(e))).is_err());
+        assert!(error_handler(&mut client, Err(Error::Czmq(e)), b"router_id").is_err());
 
         let msg = ZMsg::recv(&mut server).unwrap();
+        assert_eq!(msg.popstr().unwrap().unwrap(), "router_id");
         assert_eq!(msg.popstr().unwrap().unwrap(), "Err");
         assert_eq!(msg.popstr().unwrap().unwrap(), e_desc);
     }

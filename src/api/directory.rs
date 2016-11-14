@@ -7,7 +7,7 @@
 // modified, or distributed except according to those terms.
 
 use czmq::{ZMsg, ZSock};
-use error::Result;
+use error::{Error, Result};
 use inapi::{Directory, DirectoryOpts, Host};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -24,111 +24,111 @@ impl DirectoryApi {
         }
     }
 
-    pub fn is_directory(&self, sock: &mut ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(sock, 1, Some(1), false));
-        let msg = try!(ZMsg::new_ok());
-        match Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()) {
-            Ok(_) => try!(msg.addstr("1")),
-            Err(_) => try!(msg.addstr("0")),
+    pub fn is_directory(&self, sock: &mut ZSock, router_id: &[u8]) -> Result<()> {
+        let request = ZMsg::expect_recv(sock, 1, Some(1), false)?;
+        let msg = ZMsg::new_ok(Some(router_id))?;
+        match Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?) {
+            Ok(_) => msg.addstr("1")?,
+            Err(_) => msg.addstr("0")?,
         }
-        try!(msg.send(sock));
+        msg.send(sock)?;
         Ok(())
     }
 
-    pub fn exists(&self, sock: &mut ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(sock, 1, Some(1), false));
-        let dir = try!(Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
-        let exists = try!(dir.exists(&mut self.host.borrow_mut()));
+    pub fn exists(&self, sock: &mut ZSock, router_id: &[u8]) -> Result<()> {
+        let request = ZMsg::expect_recv(sock, 1, Some(1), false)?;
+        let dir = Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
+        let exists = dir.exists(&mut self.host.borrow_mut())?;
 
-        let msg = try!(ZMsg::new_ok());
-        try!(msg.addstr(if exists { "1" } else { "0" }));
-        try!(msg.send(sock));
+        let msg = ZMsg::new_ok(Some(router_id))?;
+        msg.addstr(if exists { "1" } else { "0" })?;
+        msg.send(sock)?;
         Ok(())
     }
 
-    pub fn create(&self, sock: &mut ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(sock, 2, Some(2), false));
+    pub fn create(&self, sock: &mut ZSock, router_id: &[u8]) -> Result<()> {
+        let request = ZMsg::expect_recv(sock, 2, Some(2), false)?;
 
-        let dir = try!(Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
+        let dir = Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
 
         let mut opts = vec![];
-        if request.popstr().unwrap().unwrap() == "1" {
+        if request.popstr().unwrap().or(Err(Error::MessageUtf8))? == "1" {
             opts.push(DirectoryOpts::DoRecursive);
         }
 
-        try!(dir.create(&mut self.host.borrow_mut(), if opts.len() > 0 { Some(opts.as_slice()) } else { None }));
-        let msg = try!(ZMsg::new_ok());
-        try!(msg.send(sock));
+        dir.create(&mut self.host.borrow_mut(), if opts.len() > 0 { Some(opts.as_slice()) } else { None })?;
+        let msg = ZMsg::new_ok(Some(router_id))?;
+        msg.send(sock)?;
         Ok(())
     }
 
-    pub fn delete(&self, sock: &mut ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(sock, 2, Some(2), false));
-        let dir = try!(Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
+    pub fn delete(&self, sock: &mut ZSock, router_id: &[u8]) -> Result<()> {
+        let request = ZMsg::expect_recv(sock, 2, Some(2), false)?;
+        let dir = Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
 
         let mut opts = vec![];
-        if request.popstr().unwrap().unwrap() == "1" {
+        if request.popstr().unwrap().or(Err(Error::MessageUtf8))? == "1" {
             opts.push(DirectoryOpts::DoRecursive);
         }
 
-        try!(dir.delete(&mut self.host.borrow_mut(), if opts.len() > 0 { Some(opts.as_slice()) } else { None }));
-        let msg = try!(ZMsg::new_ok());
-        try!(msg.send(sock));
+        dir.delete(&mut self.host.borrow_mut(), if opts.len() > 0 { Some(opts.as_slice()) } else { None })?;
+        let msg = ZMsg::new_ok(Some(router_id))?;
+        msg.send(sock)?;
         Ok(())
     }
 
-    pub fn mv(&self, sock: &mut ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(sock, 2, Some(2), false));
-        let mut dir = try!(Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
-        try!(dir.mv(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
-        let msg = try!(ZMsg::new_ok());
-        try!(msg.send(sock));
+    pub fn mv(&self, sock: &mut ZSock, router_id: &[u8]) -> Result<()> {
+        let request = ZMsg::expect_recv(sock, 2, Some(2), false)?;
+        let mut dir = Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
+        dir.mv(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
+        let msg = ZMsg::new_ok(Some(router_id))?;
+        msg.send(sock)?;
         Ok(())
     }
 
-    pub fn get_owner(&self, sock: &mut ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(sock, 1, Some(1), false));
-        let dir = try!(Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
-        let owner = try!(dir.get_owner(&mut self.host.borrow_mut()));
+    pub fn get_owner(&self, sock: &mut ZSock, router_id: &[u8]) -> Result<()> {
+        let request = ZMsg::expect_recv(sock, 1, Some(1), false)?;
+        let dir = Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
+        let owner = dir.get_owner(&mut self.host.borrow_mut())?;
 
-        let msg = try!(ZMsg::new_ok());
-        try!(msg.send_multi(sock, &[
+        let msg = ZMsg::new_ok(Some(router_id))?;
+        msg.send_multi(sock, &[
             &owner.user_name,
             &owner.user_uid.to_string(),
             &owner.group_name,
             &owner.group_gid.to_string()
-        ]));
+        ])?;
         Ok(())
     }
 
-    pub fn set_owner(&self, sock: &mut ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(sock, 3, Some(3), false));
-        let dir = try!(Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
-        try!(dir.set_owner(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap(), &request.popstr().unwrap().unwrap()));
+    pub fn set_owner(&self, sock: &mut ZSock, router_id: &[u8]) -> Result<()> {
+        let request = ZMsg::expect_recv(sock, 3, Some(3), false)?;
+        let dir = Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
+        dir.set_owner(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?, &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
 
-        let msg = try!(ZMsg::new_ok());
-        try!(msg.send(sock));
+        let msg = ZMsg::new_ok(Some(router_id))?;
+        msg.send(sock)?;
         Ok(())
     }
 
-    pub fn get_mode(&self, sock: &mut ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(sock, 1, Some(1), false));
-        let dir = try!(Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
-        let mode = try!(dir.get_mode(&mut self.host.borrow_mut()));
+    pub fn get_mode(&self, sock: &mut ZSock, router_id: &[u8]) -> Result<()> {
+        let request = ZMsg::expect_recv(sock, 1, Some(1), false)?;
+        let dir = Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
+        let mode = dir.get_mode(&mut self.host.borrow_mut())?;
 
-        let msg = try!(ZMsg::new_ok());
-        try!(msg.addstr(&mode.to_string()));
-        try!(msg.send(sock));
+        let msg = ZMsg::new_ok(Some(router_id))?;
+        msg.addstr(&mode.to_string())?;
+        msg.send(sock)?;
         Ok(())
     }
 
-    pub fn set_mode(&self, sock: &mut ZSock) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(sock, 2, Some(2), false));
-        let dir = try!(Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().unwrap()));
-        try!(dir.set_mode(&mut self.host.borrow_mut(), request.popstr().unwrap().unwrap().parse::<u16>().unwrap()));
+    pub fn set_mode(&self, sock: &mut ZSock, router_id: &[u8]) -> Result<()> {
+        let request = ZMsg::expect_recv(sock, 2, Some(2), false)?;
+        let dir = Directory::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
+        dir.set_mode(&mut self.host.borrow_mut(), request.popstr().unwrap().or(Err(Error::MessageUtf8))?.parse::<u16>().unwrap())?;
 
-        let msg = try!(ZMsg::new_ok());
-        try!(msg.send(sock));
+        let msg = ZMsg::new_ok(Some(router_id))?;
+        msg.send(sock)?;
         Ok(())
     }
 }

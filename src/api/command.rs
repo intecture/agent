@@ -7,24 +7,24 @@
 // modified, or distributed except according to those terms.
 
 use czmq::{ZMsg, ZSock};
-use error::Result;
+use error::{Error, Result};
 use inapi::{Command, Host};
 use zdaemon::ZMsgExtended;
 
 pub struct CommandApi;
 
 impl CommandApi {
-    pub fn exec(sock: &mut ZSock, host: &mut Host) -> Result<()> {
-        let request = try!(ZMsg::expect_recv(sock, 1, Some(1), false));
-        let cmd = Command::new(&request.popstr().unwrap().unwrap());
-        let result = try!(cmd.exec(host));
+    pub fn exec(sock: &mut ZSock, host: &mut Host, router_id: &[u8]) -> Result<()> {
+        let request = ZMsg::expect_recv(sock, 2, Some(2), false)?;
+        let cmd = Command::new(&request.popstr().unwrap().or(Err(Error::MessageUtf8))?);
+        let result = cmd.exec(host)?;
 
-        let msg = try!(ZMsg::new_ok());
-        try!(msg.send_multi(sock, &[
+        let msg = ZMsg::new_ok(Some(router_id))?;
+        msg.send_multi(sock, &[
             &result.exit_code.to_string(),
             &result.stdout,
             &result.stderr
-        ]));
+        ])?;
 
         Ok(())
     }

@@ -14,11 +14,11 @@ use zdaemon::ZMsgExtended;
 pub struct PackageApi;
 
 impl PackageApi {
-    pub fn default_provider(sock: &mut ZSock, host: &mut Host) -> Result<()> {
-        let provider = try!(ProviderFactory::create(host, None));
-        let msg = try!(ZMsg::new_ok());
-        try!(msg.addstr(&provider.get_providers().to_string()));
-        try!(msg.send(sock));
+    pub fn default_provider(sock: &mut ZSock, host: &mut Host, router_id: &[u8]) -> Result<()> {
+        let provider = ProviderFactory::create(host, None)?;
+        let msg = ZMsg::new_ok(Some(router_id))?;
+        msg.addstr(&provider.get_providers().to_string())?;
+        msg.send(sock)?;
         Ok(())
     }
 }

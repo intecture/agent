@@ -15,11 +15,11 @@ use zdaemon::ZMsgExtended;
 pub struct TelemetryApi;
 
 impl TelemetryApi {
-    pub fn get(sock: &mut ZSock, host: &mut Host) -> Result<()> {
-        let json = try!(serde_json::to_string(host.data()));
-        let msg = try!(ZMsg::new_ok());
-        try!(msg.addstr(&json));
-        try!(msg.send(sock));
+    pub fn get(sock: &mut ZSock, host: &mut Host, router_id: &[u8]) -> Result<()> {
+        let json = serde_json::to_string(host.data())?;
+        let msg = ZMsg::new_ok(Some(router_id))?;
+        msg.addstr(&json)?;
+        msg.send(sock)?;
         Ok(())
     }
 }

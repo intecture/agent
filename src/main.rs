@@ -25,7 +25,7 @@ mod error;
 
 use chan_signal::Signal;
 use config::Config;
-use czmq::{ZCert, ZSock, ZSockType, ZSys};
+use czmq::{ZCert, ZSock, SocketType, ZSys};
 use error::Result;
 use inauth_client::{CertType, ZapHandler};
 use std::process::exit;
@@ -56,7 +56,7 @@ fn start() -> Result<()> {
         config.auth_server_port,
         false);
 
-    let mut file_sock = ZSock::new(ZSockType::ROUTER);
+    let mut file_sock = ZSock::new(SocketType::ROUTER);
     server_cert.apply(&mut file_sock);
     file_sock.set_zap_domain("agent.intecture");
     file_sock.set_curve_server(true);
