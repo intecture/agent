@@ -15,7 +15,7 @@ pub struct CommandApi;
 
 impl CommandApi {
     pub fn exec(sock: &mut ZSock, host: &mut Host, router_id: &[u8]) -> Result<()> {
-        let request = ZMsg::expect_recv(sock, 2, Some(2), false)?;
+        let request = ZMsg::expect_recv(sock, 1, Some(1), false)?;
         let cmd = Command::new(&request.popstr().unwrap().or(Err(Error::MessageUtf8))?);
         let result = cmd.exec(host)?;
 
