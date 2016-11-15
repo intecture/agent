@@ -20,7 +20,9 @@ impl ServiceApi {
         let service = Service::new_service(ServiceRunnable::Service(&runnable), None);
         let result = service.action(host, &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
 
-        let msg = ZMsg::new_ok(Some(router_id))?;
+        let msg = ZMsg::new_ok()?;
+        msg.pushstr("")?;
+        msg.pushbytes(router_id)?;
         if let Some(r) = result {
             msg.send_multi(sock, &[
                 &r.exit_code.to_string(),

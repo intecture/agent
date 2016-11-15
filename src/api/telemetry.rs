@@ -17,7 +17,9 @@ pub struct TelemetryApi;
 impl TelemetryApi {
     pub fn get(sock: &mut ZSock, host: &mut Host, router_id: &[u8]) -> Result<()> {
         let json = serde_json::to_string(host.data())?;
-        let msg = ZMsg::new_ok(Some(router_id))?;
+        let msg = ZMsg::new_ok()?;
+        msg.pushstr("")?;
+        msg.pushbytes(router_id)?;
         msg.addstr(&json)?;
         msg.send(sock)?;
         Ok(())

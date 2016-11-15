@@ -100,7 +100,8 @@ fn error_handler(sock: &mut ZSock, result: Result<()>, router_id: &[u8]) -> StdR
         Ok(_) => Ok(()),
         Err(e) => {
             let derror: DError = e.into();
-            let msg = ZMsg::new_err(&derror, Some(router_id))?;
+            let msg = ZMsg::new_err(&derror)?;
+            msg.pushbytes(router_id)?;
             msg.send(sock)?;
             Err(derror)
         }

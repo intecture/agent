@@ -26,7 +26,9 @@ impl FileApi {
 
     pub fn is_file(&self, sock: &mut ZSock, router_id: &[u8]) -> Result<()> {
         let request = ZMsg::expect_recv(sock, 1, Some(1), false)?;
-        let msg = ZMsg::new_ok(Some(router_id))?;
+        let msg = ZMsg::new_ok()?;
+        msg.pushstr("")?;
+        msg.pushbytes(router_id)?;
         match File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?) {
             Ok(_) => msg.addstr("1")?,
             Err(_) => msg.addstr("0")?,
@@ -39,7 +41,9 @@ impl FileApi {
         let request = ZMsg::expect_recv(sock, 1, Some(1), false)?;
         let file = File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
         let exists = file.exists(&mut self.host.borrow_mut())?;
-        let msg = ZMsg::new_ok(Some(router_id))?;
+        let msg = ZMsg::new_ok()?;
+        msg.pushstr("")?;
+        msg.pushbytes(router_id)?;
         msg.addstr(if exists { "1" } else { "0" })?;
         msg.send(sock)?;
         Ok(())
@@ -49,7 +53,9 @@ impl FileApi {
         let request = ZMsg::expect_recv(sock, 1, Some(1), false)?;
         let file = File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
         file.delete(&mut self.host.borrow_mut())?;
-        let msg = ZMsg::new_ok(Some(router_id))?;
+        let msg = ZMsg::new_ok()?;
+        msg.pushstr("")?;
+        msg.pushbytes(router_id)?;
         msg.send(sock)?;
         Ok(())
     }
@@ -58,7 +64,9 @@ impl FileApi {
         let request = ZMsg::expect_recv(sock, 2, Some(2), false)?;
         let mut file = File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
         file.mv(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
-        let msg = ZMsg::new_ok(Some(router_id))?;
+        let msg = ZMsg::new_ok()?;
+        msg.pushstr("")?;
+        msg.pushbytes(router_id)?;
         msg.send(sock)?;
         Ok(())
     }
@@ -67,7 +75,9 @@ impl FileApi {
         let request = ZMsg::expect_recv(sock, 2, Some(2), false)?;
         let file = File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
         file.copy(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
-        let msg = ZMsg::new_ok(Some(router_id))?;
+        let msg = ZMsg::new_ok()?;
+        msg.pushstr("")?;
+        msg.pushbytes(router_id)?;
         msg.send(sock)?;
         Ok(())
     }
@@ -76,7 +86,9 @@ impl FileApi {
         let request = ZMsg::expect_recv(sock, 1, Some(1), false)?;
         let file = File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
         let owner = file.get_owner(&mut self.host.borrow_mut())?;
-        let msg = ZMsg::new_ok(Some(router_id))?;
+        let msg = ZMsg::new_ok()?;
+        msg.pushstr("")?;
+        msg.pushbytes(router_id)?;
         msg.send_multi(sock, &[
             &owner.user_name,
             &owner.user_uid.to_string(),
@@ -90,7 +102,9 @@ impl FileApi {
         let request = ZMsg::expect_recv(sock, 3, Some(3), false)?;
         let file = File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
         file.set_owner(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?, &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
-        let msg = ZMsg::new_ok(Some(router_id))?;
+        let msg = ZMsg::new_ok()?;
+        msg.pushstr("")?;
+        msg.pushbytes(router_id)?;
         msg.send(sock)?;
         Ok(())
     }
@@ -99,7 +113,9 @@ impl FileApi {
         let request = ZMsg::expect_recv(sock, 1, Some(1), false)?;
         let file = File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
         let mode = file.get_mode(&mut self.host.borrow_mut())?;
-        let msg = ZMsg::new_ok(Some(router_id))?;
+        let msg = ZMsg::new_ok()?;
+        msg.pushstr("")?;
+        msg.pushbytes(router_id)?;
         msg.addstr(&mode.to_string())?;
         msg.send(sock)?;
         Ok(())
@@ -109,7 +125,9 @@ impl FileApi {
         let request = ZMsg::expect_recv(sock, 2, Some(2), false)?;
         let file = File::new(&mut self.host.borrow_mut(), &request.popstr().unwrap().or(Err(Error::MessageUtf8))?)?;
         file.set_mode(&mut self.host.borrow_mut(), request.popstr().unwrap().or(Err(Error::MessageUtf8))?.parse::<u16>().unwrap())?;
-        let msg = ZMsg::new_ok(Some(router_id))?;
+        let msg = ZMsg::new_ok()?;
+        msg.pushstr("")?;
+        msg.pushbytes(router_id)?;
         msg.send(sock)?;
         Ok(())
     }

@@ -19,7 +19,9 @@ impl CommandApi {
         let cmd = Command::new(&request.popstr().unwrap().or(Err(Error::MessageUtf8))?);
         let result = cmd.exec(host)?;
 
-        let msg = ZMsg::new_ok(Some(router_id))?;
+        let msg = ZMsg::new_ok()?;
+        msg.pushstr("")?;
+        msg.pushbytes(router_id)?;
         msg.send_multi(sock, &[
             &result.exit_code.to_string(),
             &result.stdout,
