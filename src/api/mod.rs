@@ -101,6 +101,7 @@ fn error_handler(sock: &mut ZSock, result: Result<()>, router_id: &[u8]) -> StdR
         Err(e) => {
             let derror: DError = e.into();
             let msg = ZMsg::new_err(&derror)?;
+            msg.pushstr("")?;
             msg.pushbytes(router_id)?;
             msg.send(sock)?;
             Err(derror)
@@ -127,6 +128,7 @@ mod tests {
 
         let msg = ZMsg::recv(&mut server).unwrap();
         assert_eq!(msg.popstr().unwrap().unwrap(), "router_id");
+        assert_eq!(msg.popstr().unwrap().unwrap(), "");
         assert_eq!(msg.popstr().unwrap().unwrap(), "Err");
         assert_eq!(msg.popstr().unwrap().unwrap(), e_desc);
     }
