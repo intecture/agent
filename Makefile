@@ -1,5 +1,6 @@
 TARGET = release
 PREFIX = /usr/local
+SYSCONFDIR = "$(PREFIX)/etc"
 
 all:
 ifeq ($(TARGET), release)
@@ -9,9 +10,9 @@ else
 endif
 
 install:
-	mkdir -p $(PREFIX)/etc/intecture
-	sed 's~<CFGPATH>~$(PREFIX)/etc/intecture~' resources/agent.json > $(PREFIX)/etc/intecture/agent.json
-	chmod 0644 $(PREFIX)/etc/intecture/agent.json
+	mkdir -p $(SYSCONFDIR)/intecture
+	sed 's~{{sysconfdir}}~$(SYSCONFDIR)~' resources/agent.json.tpl > $(SYSCONFDIR)/intecture/agent.json
+	chmod 0644 $(SYSCONFDIR)/intecture/agent.json
 	install -m 0755 target/$(TARGET)/inagent $(PREFIX)/bin/
 	if [ -f /etc/rc.conf ]; then \
 		install -m 555 resources/init/freebsd /etc/rc.d/inagent; \
@@ -28,13 +29,13 @@ install:
 	fi;
 
 uninstall:
-	rm -f $(PREFIX)/bin/inagent
-	rm -f $(PREFIX)/etc/intecture/agent.json
-	rmdir --ignore-fail-on-non-empty $(PREFIX)/etc/intecture
-	rm -f /lib/systemd/system/inagent.service
-	rm -f /usr/lib/systemd/system/inagent.service
-	rm -f /etc/init.d/inagent
-	rm -f /etc/rc.d/inagent
+	rm -f $(PREFIX)/bin/inagent \
+		  $(SYSCONFDIR)/intecture/agent.json \
+		  /lib/systemd/system/inagent.service \
+		  /usr/lib/systemd/system/inagent.service \
+		  /etc/init.d/inagent \
+		  /etc/rc.d/inagent;
+	rmdir --ignore-fail-on-non-empty $(SYSCONFDIR)/intecture
 
 test:
 ifeq ($(TARGET), release)
