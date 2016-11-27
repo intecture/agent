@@ -11,13 +11,13 @@ use zdaemon::ConfigFile;
 #[derive(Debug)]
 #[derive(RustcDecodable, RustcEncodable)]
 pub struct Config {
-    pub auth_server: String,
-    pub auth_server_port: u32,
-    pub auth_server_cert: String,
-    pub server_cert: String,
     pub api_port: u32,
+    pub server_cert: String,
     pub filexfer_port: u32,
     pub filexfer_threads: u32,
+    pub auth_server: String,
+    pub auth_update_port: u32,
+    pub auth_cert: String,
 }
 
 impl ConfigFile for Config {}

@@ -46,14 +46,14 @@ fn start() -> Result<()> {
 
     let config = try!(Config::search("intecture/agent.json", None));
     let server_cert = try!(ZCert::load(&config.server_cert));
-    let auth_cert = try!(ZCert::load(&config.auth_server_cert));
+    let auth_cert = try!(ZCert::load(&config.auth_cert));
 
     let _auth = ZapHandler::new(
         Some(CertType::User),
         &server_cert,
         &auth_cert,
         &config.auth_server,
-        config.auth_server_port,
+        config.auth_update_port,
         false);
 
     let mut file_sock = ZSock::new(SocketType::ROUTER);
