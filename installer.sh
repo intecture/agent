@@ -115,6 +115,56 @@ do_install() {
     install -m 755 inagent $prefix/bin
 }
 
+install_certs() {
+    install -m 600 $1 $sysconfdir/intecture/agent.crt
+    install -m 600 $2 $sysconfdir/intecture/auth.crt_public
+}
+
+amend_conf() {
+    local _confpath = $sysconfdir/intecture/agent.json
+    if [ ! -f $_confpath ]; then
+        echo "Agent conf file not found. Run `installer.sh install` first."
+        exit 1
+    fi
+
+    # If value is int, don't enclose in quotes
+    if [ $2 -eq $2 2> /dev/null ]; then
+        local _quotes = ""
+    else
+        local _quotes = '"'
+    fi
+
+    local _tmpfile = mktemp
+    sed "s/\"$1\": .*/\"$1\": $_quotes$2$_quotes/" < $_confpath > $_tmpfile
+    install -m 600 $_tmpfile $_confpath
+}
+
+start_daemon() {
+    case "$ostype" in
+        Linux)
+            if $(stat --format=%N /proc/1/exe|grep -qs systemd); then
+                systemctl start inagent
+            else
+                service inagent start
+            fi
+            ;;
+
+        FreeBSD)
+            echo "\ninagent_enable=\"YES\"\n" >> /etc/rc.conf
+            service inagent start
+            ;;
+
+        Darwin)
+            nohup /usr/local/bin/inagent &
+            ;;
+
+        *)
+            echo "unrecognized OS type: $ostype" >&2
+            exit 1
+            ;;
+    esac
+}
+
 do_uninstall() {
 	rm -f $prefix/bin/inagent \
 		  $sysconfdir/intecture/agent.json \
@@ -126,9 +176,17 @@ do_uninstall() {
 	rmdir --ignore-fail-on-non-empty $sysconfdir/intecture
 }
 
+usage() {
+    echo "Usage:
+    installer.sh <install|uninstall>
+    installer.sh install_certs <agent_prikey_path> <auth_pubkey_path>
+    installer.sh amend_conf <key> <value>
+    installer.sh start_daemon"
+}
+
 main() {
 	if [ $# -eq 0 ]; then
-		echo "Usage: installer.sh <install|uninstall>"
+		usage
 		exit 0
 	fi
 
@@ -140,6 +198,28 @@ main() {
 		uninstall)
 			do_uninstall
 			;;
+
+        install_certs)
+            if [ -z $2 || -z $3 ]; then
+                usage
+                exit 1
+            fi
+
+            install_certs $2 $3
+            ;;
+
+        amend_conf)
+            if [ -z $2 || -z $3 ]; then
+                usage
+                exit 1
+            fi
+
+            amend_conf $2 $3
+            ;;
+
+        start_daemon)
+            start_daemon
+            ;;
 
 		*)
 			echo "Unknown option $1"
