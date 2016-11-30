@@ -28,13 +28,19 @@ use config::Config;
 use czmq::{ZCert, ZSock, SocketType, ZSys};
 use error::Result;
 use inauth_client::{CertType, ZapHandler};
+use std::env;
 use std::process::exit;
 use std::thread::spawn;
 use zdaemon::{ConfigFile, Service};
 use zfilexfer::Server as FileServer;
 
 fn main() {
-    if let Err(e) = start() {
+    let mut args = env::args();
+    if args.nth(1).as_ref().map(|a| &**a) == Some("--version") {
+        println!(env!("CARGO_PKG_VERSION"));
+        exit(0);
+    }
+    else if let Err(e) = start() {
         println!("{}", e);
         exit(1);
     }

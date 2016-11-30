@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 # Copyright 2015-2016 Intecture Developers. See the COPYRIGHT file at the
 # top-level directory of this distribution and at
 # https://intecture.io/COPYRIGHT.
@@ -11,39 +11,10 @@
 set -u
 
 # Globals
-prefix=""
-libdir=""
-sysconfdir=""
+prefix="{{prefix}}"
+libdir="{{libdir}}"
+sysconfdir="{{sysconfdir}}"
 ostype="$(uname -s)"
-
-case "$ostype" in
-    Linux)
-        prefix="/usr"
-		libdir="$prefix/lib"
-        sysconfdir="/etc"
-
-		if [ -d "${libdir}64" ]; then
-			libdir="${libdir}64"
-		fi
-        ;;
-
-    FreeBSD)
-        prefix="/usr/local"
-		libdir="$prefix/lib"
-        sysconfdir="$prefix/etc"
-        ;;
-
-    Darwin)
-        prefix="/usr/local"
-		libdir="$prefix/lib"
-        sysconfdir="$prefix/etc"
-        ;;
-
-    *)
-        echo "unrecognized OS type: $ostype" >&2
-        exit 1
-        ;;
-esac
 
 do_install() {
     if ! $(pkg-config --exists libzmq); then
@@ -109,7 +80,6 @@ do_install() {
 	fi
 
     mkdir -p $sysconfdir/intecture
-    sed "s~{{sysconfdir}}~$sysconfdir~" agent.json.tpl > agent.json
     install -m 644 agent.json $sysconfdir/intecture/
 
     install -m 755 inagent $prefix/bin
@@ -121,7 +91,7 @@ install_certs() {
 }
 
 amend_conf() {
-    local _confpath = $sysconfdir/intecture/agent.json
+    local _confpath=$sysconfdir/intecture/agent.json
     if [ ! -f $_confpath ]; then
         echo "Agent conf file not found. Run `installer.sh install` first."
         exit 1
@@ -129,13 +99,21 @@ amend_conf() {
 
     # If value is int, don't enclose in quotes
     if [ $2 -eq $2 2> /dev/null ]; then
-        local _quotes = ""
+        local _quotes=""
     else
-        local _quotes = '"'
+        local _quotes='"'
     fi
 
-    local _tmpfile = mktemp
-    sed "s/\"$1\": .*/\"$1\": $_quotes$2$_quotes/" < $_confpath > $_tmpfile
+    local _line=$(grep -n "\"$1\":" $_confpath | cut -f1 -d:)
+    local _total=$(wc -l $_confpath | cut -f1 -d' ')
+    if [ `expr $_total - $_line` -gt 1 ]; then
+        local _comma=","
+    else
+        local _comma=""
+    fi
+
+    local _tmpfile=mktemp
+    sed "s~\"$1\": .*~\"$1\": $_quotes$2$_quotes$_comma~" < $_confpath > $_tmpfile || exit 1
     install -m 600 $_tmpfile $_confpath
 }
 
@@ -200,7 +178,7 @@ main() {
 			;;
 
         install_certs)
-            if [ -z $2 || -z $3 ]; then
+            if [ -z $2 -o -z $3 ]; then
                 usage
                 exit 1
             fi
@@ -209,7 +187,7 @@ main() {
             ;;
 
         amend_conf)
-            if [ -z $2 || -z $3 ]; then
+            if [ -z $2 -o -z $3 ]; then
                 usage
                 exit 1
             fi
