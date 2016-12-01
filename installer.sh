@@ -112,7 +112,7 @@ amend_conf() {
         local _comma=""
     fi
 
-    local _tmpfile=mktemp
+    local _tmpfile=$(mktemp 2>/dev/null || mktemp -t inagent-conf)
     sed "s~\"$1\": .*~\"$1\": $_quotes$2$_quotes$_comma~" < $_confpath > $_tmpfile || exit 1
     install -m 600 $_tmpfile $_confpath
 }
