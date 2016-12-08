@@ -35,7 +35,9 @@ uninstall:
 		  /usr/lib/systemd/system/inagent.service \
 		  /etc/init.d/inagent \
 		  /etc/rc.d/inagent;
-	rmdir --ignore-fail-on-non-empty $(SYSCONFDIR)/intecture
+	if [ "$(ls -A $SYSCONFDIR/intecture)" ]; then \
+		rmdir $(SYSCONFDIR)/intecture; \
+	fi
 
 test:
 ifeq ($(TARGET), release)
