@@ -1,7 +1,7 @@
 [package]
 
 name = "intecture-agent"
-version = "0.2.1"
+version = "0.3.0"
 authors = [ "Peter Hayes <peter.hayes@betweenlines.co.uk>" ]
 license = "MPL-2.0"
 description = "Agent component for Intecture infrastructure. Intecture is the developer friendly, multi-lingual configuration management tool."
@@ -11,25 +11,23 @@ repository = "https://github.com/intecture/agent"
 
 [dev-dependencies]
 
-tempdir = "0.3.*"
+tempdir = "0.3"
 
 [dependencies]
 
 chan = "0.1"
 chan-signal = "0.1"
-czmq = { git = "https://github.com/petehayes102/rust-czmq.git", branch = "dev" }
-intecture-auth = { git = "https://github.com/intecture/auth.git", branch = "dev" }
+czmq = "0.1"
+intecture-auth = "0.1"
 rustc-serialize = "0.3"
 serde = "0.8"
 serde_json = "0.8"
-zdaemon = { git = "https://github.com/betweenlines/zdaemon.git", branch = "dev" }
-zfilexfer = { git = "https://github.com/betweenlines/zfilexfer.git", branch = "dev" }
+zdaemon = "0.0.2"
+zfilexfer = "0.0.2"
 
 [dependencies.intecture-api]
 
-git = "https://github.com/intecture/api.git"
-branch = "dev"
-# version = "0.2.1"
+version = "0.3"
 default-features = false
 features = ["local-run"]
 

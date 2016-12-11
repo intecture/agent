@@ -1,18 +1,18 @@
 [root]
 name = "intecture-agent"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "chan 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "chan-signal 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
- "intecture-api 0.2.1 (git+https://github.com/intecture/api.git?branch=dev)",
- "intecture-auth 0.0.2 (git+https://github.com/intecture/auth.git?branch=dev)",
+ "czmq 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "intecture-api 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "intecture-auth 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.22 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 0.8.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 0.8.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempdir 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "zdaemon 0.0.1 (git+https://github.com/betweenlines/zdaemon.git?branch=dev)",
- "zfilexfer 0.0.1 (git+https://github.com/betweenlines/zfilexfer.git?branch=dev)",
+ "zdaemon 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zfilexfer 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -70,18 +70,18 @@ dependencies = [
 
 [[package]]
 name = "czmq"
-version = "0.0.5"
-source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#15ecff0222ed7e3645e2a7f8bd3ce11aa7732d3d"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bitflags 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "czmq-sys 0.0.3 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
- "zmq 0.8.0 (git+https://github.com/petehayes102/rust-zmq.git)",
+ "czmq-sys 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zmq 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "czmq-sys"
-version = "0.0.3"
-source = "git+https://github.com/petehayes102/rust-czmq.git?branch=dev#15ecff0222ed7e3645e2a7f8bd3ce11aa7732d3d"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -104,8 +104,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "intecture-api"
-version = "0.2.1"
-source = "git+https://github.com/intecture/api.git?branch=dev#5fbee5a2f73e2fbb99ab9cb74db4ab7bddf20d0a"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "lazy_static 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -115,22 +115,22 @@ dependencies = [
  "serde 0.8.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 0.8.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempfile 2.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "zdaemon 0.0.1 (git+https://github.com/betweenlines/zdaemon.git?branch=dev)",
- "zfilexfer 0.0.1 (git+https://github.com/betweenlines/zfilexfer.git?branch=dev)",
+ "zdaemon 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zfilexfer 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "intecture-auth"
-version = "0.0.2"
-source = "git+https://github.com/intecture/auth.git?branch=dev#1ef5f6cfdf4ae850c8fc515f63bcb786e9c2ea39"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "chan 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "chan-signal 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
+ "czmq 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "docopt 0.6.86 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.22 (registry+https://github.com/rust-lang/crates.io-index)",
- "zdaemon 0.0.1 (git+https://github.com/betweenlines/zdaemon.git?branch=dev)",
- "zmq 0.8.0 (git+https://github.com/petehayes102/rust-zmq.git)",
+ "zdaemon 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zmq 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -312,38 +312,38 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "zdaemon"
-version = "0.0.1"
-source = "git+https://github.com/betweenlines/zdaemon.git?branch=dev#738334ce926ac29c94410a43c77e47ba72b08e6d"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
+ "czmq 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.22 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "zfilexfer"
-version = "0.0.1"
-source = "git+https://github.com/betweenlines/zfilexfer.git?branch=dev#2cbe4767bbb2d66400f5e52142539caa3c5a1f48"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "crc 1.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)",
+ "czmq 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.22 (registry+https://github.com/rust-lang/crates.io-index)",
- "zdaemon 0.0.1 (git+https://github.com/betweenlines/zdaemon.git?branch=dev)",
+ "zdaemon 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "zmq"
 version = "0.8.0"
-source = "git+https://github.com/petehayes102/rust-zmq.git#5ce1b3294114ad5349d688eac706c12773b2e824"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq-sys 0.8.0 (git+https://github.com/petehayes102/rust-zmq.git)",
+ "zmq-sys 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "zmq-sys"
 version = "0.8.0"
-source = "git+https://github.com/petehayes102/rust-zmq.git#5ce1b3294114ad5349d688eac706c12773b2e824"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -357,12 +357,12 @@ dependencies = [
 "checksum chan 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)" = "82b22acfef7960fd8f829bc50749273be637cbd76b9d4cc20497666cc3a33329"
 "checksum chan-signal 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)" = "365122ab60a9dc6240b48e39d011b4389c3853093d98bf586edd2b79bfb4fbfa"
 "checksum crc 1.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2a3f9159e74024e2cdb6f574e9117cdc2e91523a890930a022823d17abedc90a"
-"checksum czmq 0.0.5 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)" = "<none>"
-"checksum czmq-sys 0.0.3 (git+https://github.com/petehayes102/rust-czmq.git?branch=dev)" = "<none>"
+"checksum czmq 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "9922c5f49ef25a93014da33011c0db44e10d3d9d0d566a48c71f1d193a417a46"
+"checksum czmq-sys 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "13f528835f7d21f895ddc2f74f13f29b089e05673434d87c342480200a6b6a99"
 "checksum docopt 0.6.86 (registry+https://github.com/rust-lang/crates.io-index)" = "4a7ef30445607f6fc8720f0a0a2c7442284b629cf0d049286860fae23e71c4d9"
 "checksum dtoa 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "0dd841b58510c9618291ffa448da2e4e0f699d984d436122372f446dae62263d"
-"checksum intecture-api 0.2.1 (git+https://github.com/intecture/api.git?branch=dev)" = "<none>"
-"checksum intecture-auth 0.0.2 (git+https://github.com/intecture/auth.git?branch=dev)" = "<none>"
+"checksum intecture-api 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d66aedb947fd266534860fe086d948a4904240db379c2b345a26fb4960d9f06d"
+"checksum intecture-auth 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8ca8df96e87dafc304a2581dda84b400214dde875b5146963868d775831eb725"
 "checksum itoa 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "ae3088ea4baeceb0284ee9eea42f591226e6beaecf65373e41b38d95a1b8e7a1"
 "checksum kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"
 "checksum lazy_static 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)" = "cf186d1a8aa5f5bee5fd662bc9c1b949e0259e1bcc379d1f006847b0080c7417"
@@ -389,7 +389,7 @@ dependencies = [
 "checksum utf8-ranges 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "a1ca13c08c41c9c3e04224ed9ff80461d97e121589ff27c753a16cb10830ae0f"
 "checksum winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "167dc9d6949a9b857f3451275e911c3f44255842c1f7a76f33c55103a909087a"
 "checksum winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "2d315eee3b34aca4797b2da6b13ed88266e6d612562a0c46390af8299fc699bc"
-"checksum zdaemon 0.0.1 (git+https://github.com/betweenlines/zdaemon.git?branch=dev)" = "<none>"
-"checksum zfilexfer 0.0.1 (git+https://github.com/betweenlines/zfilexfer.git?branch=dev)" = "<none>"
-"checksum zmq 0.8.0 (git+https://github.com/petehayes102/rust-zmq.git)" = "<none>"
-"checksum zmq-sys 0.8.0 (git+https://github.com/petehayes102/rust-zmq.git)" = "<none>"
+"checksum zdaemon 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "5b4d1c8c01a92b76bf5804ae11259d9455d733dcfed7a3a71e70fe99559baa39"
+"checksum zfilexfer 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "4a3e37e2400709a10ac874f05e37a4e7720db16d956bdfae30ae588477a929b7"
+"checksum zmq 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "9d58a0273355358980735c75f1b6f5f2e215cd36742053fe75906b2c002155d7"
+"checksum zmq-sys 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7a857f46b6d4147230615bf3c3b9ebfa8c021d0ed086c8ec9ca2b934c3a0cac3"
