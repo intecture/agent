@@ -6,7 +6,7 @@ Intecture is a developer friendly, language agnostic configuration management to
 * Standard programming interface. No DSL. No magic.
 * Rust API library (and bindings for popular languages)
 
-You can find out more at [intecture.io](http://intecture.io).
+You can find out more at [intecture.io](https://intecture.io).
 
 # System Requirements
 
