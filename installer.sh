@@ -15,33 +15,33 @@ prefix="{{prefix}}"
 libdir="{{libdir}}"
 libext="{{libext}}"
 sysconfdir="{{sysconfdir}}"
-ostype="{{ostype}}"
+os="{{os}}"
 
 do_install() {
     local _one=
     local _two=
 
     if ! $(pkg-config --exists libzmq); then
-        if [ "$ostype" = "darwin"]; then
-            $_one="5"
-            $_two=$libext
+        if [ "$os" = "darwin" ]; then
+            _one="5"
+            _two=$libext
         else
-            $_one=$libext
-            $_two="5"
+            _one=$libext
+            _two="5"
         fi
         install -m 755 lib/libzmq.$libext $libdir/libzmq.$_one.$_two
         ln -s $libdir/libzmq.$_one.$_two $libdir/libzmq.$libext
-		install -m 644 lib/pkgconfig/libzmq.pc $libdir/pkgconfig/
+        install -m 644 lib/pkgconfig/libzmq.pc $libdir/pkgconfig/
         install -m 644 include/zmq.h $prefix/include/
     fi
 
     if ! $(pkg-config --exists libczmq); then
-        if [ "$ostype" = "darwin"]; then
-            $_one="4"
-            $_two=$libext
+        if [ "$os" = "darwin" ]; then
+            _one="4"
+            _two=$libext
         else
-            $_one=$libext
-            $_two="4"
+            _one=$libext
+            _two="4"
         fi
         install -m 755 lib/libczmq.$libext $libdir/libczmq.$_one.$_two
         ln -s $libdir/libczmq.$_one.$_two $libdir/libczmq.$libext
@@ -81,19 +81,22 @@ do_install() {
         install -m 644 include/zuuid.h $prefix/include/
     fi
 
-	if [ -f /etc/rc.conf ]; then
-		install -m 555 init/freebsd $sysconfdir/rc.d/inagent;
-	elif $(stat --format=%N /proc/1/exe|grep -qs systemd); then
-		if [ -d $prefix/usr/systemd/system ]; then
-			install -m 644 init/systemd $prefix/lib/systemd/system/inagent.service
-		elif [ -d /lib/systemd/system ]; then
-			install -m 644 init/systemd /lib/systemd/system/inagent.service
-		fi
-	elif [ -f $sysconfdir/redhat-release ]; then
-		install -m 755 init/redhat $sysconfdir/init.d/inagent
-	elif [ -f $sysconfdir/debian_version ]; then
-		install -m 755 init/debian $sysconfdir/init.d/inagent
-	fi
+    if $(stat --format=%N /proc/1/exe|grep -qs systemd); then
+        if [ -d $prefix/usr/systemd/system ]; then
+            install -m 644 systemd $prefix/lib/systemd/system/inagent.service
+        elif [ -d /lib/systemd/system ]; then
+            install -m 644 systemd /lib/systemd/system/inagent.service
+        fi
+    else
+        case "$os" in
+            centos | fedora | debian | ubuntu)
+                install -m 755 init $sysconfdir/init.d/inagent
+                ;;
+            freebsd)
+                install -m 555 init $sysconfdir/rc.d/inagent;
+                ;;
+        esac
+    fi
 
     mkdir -p $sysconfdir/intecture
     install -m 644 agent.json $sysconfdir/intecture/
@@ -134,8 +137,8 @@ amend_conf() {
 }
 
 start_daemon() {
-    case "$ostype" in
-        redhat | debian)
+    case "$os" in
+        centos | fedora | debian | ubuntu)
             if $(stat --format=%N /proc/1/exe|grep -qs systemd); then
                 systemctl start inagent
             else
@@ -153,7 +156,7 @@ start_daemon() {
             ;;
 
         *)
-            echo "unrecognized OS type: $ostype" >&2
+            echo "unrecognized OS type: $os" >&2
             exit 1
             ;;
     esac
@@ -167,7 +170,9 @@ do_uninstall() {
 		  $sysconfdir/init.d/inagent \
 		  $sysconfdir/rc.d/inagent
 
-	rmdir --ignore-fail-on-non-empty $sysconfdir/intecture
+    if [ ! "$(ls -A $sysconfdir/intecture)" ]; then
+        rmdir "$sysconfdir/intecture"
+    fi
 }
 
 usage() {
