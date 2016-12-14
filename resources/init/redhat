@@ -19,20 +19,34 @@
 inagent="/usr/bin/inagent"
 config="/etc/intecture/agent.json"
 prog="inagent"
+pidfile="/var/run/$prog.pid"
 
 start() {
     [ -x $inagent ] || exit 5
     [ -f $config ] || exit 6
+
     echo -n $"Starting $prog: "
-    daemon $inagent "&"
-    retval=$?
+
+    # Check if daemon already started
+    local pids=$(pidof $prog)
+    if [ -n "$pids" ]; then
+        echo -n "$prog (pid $pids) is already running" && warning
+        echo
+        return 0
+    fi
+
+    nohup "$inagent" >/dev/null 2>&1 &
+    RETVAL=$?
+
+    # Write pid to file and print status
+    [ $RETVAL -eq 0 ] && echo $! > $pidfile && success || failure
     echo
-    return $retval
+    return $RETVAL
 }
 
 stop() {
     echo -n $"Stopping $prog: "
-    killproc $prog
+    killproc -p $pidfile $prog
     retval=$?
     echo
     return $retval
