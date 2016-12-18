@@ -35,7 +35,7 @@ uninstall:
 		  /usr/lib/systemd/system/inagent.service \
 		  /etc/init.d/inagent \
 		  /etc/rc.d/inagent;
-	if [ ! "$(ls -A $SYSCONFDIR/intecture)" ]; then \
+	if [ -d $SYSCONFDIR/intecture -a -z "$(ls -A $SYSCONFDIR/intecture)" ]; then \
 		rmdir $(SYSCONFDIR)/intecture; \
 	fi
 

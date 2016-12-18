@@ -170,7 +170,7 @@ do_uninstall() {
 		  $sysconfdir/init.d/inagent \
 		  $sysconfdir/rc.d/inagent
 
-    if [ ! "$(ls -A $sysconfdir/intecture)" ]; then
+    if [ -d $sysconfdir/intecture -a -z "$(ls -A $sysconfdir/intecture)" ]; then
         rmdir "$sysconfdir/intecture"
     fi
 }
