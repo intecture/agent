@@ -9,14 +9,13 @@
 use czmq::{ZMsg, ZSock};
 use error::Result;
 use inapi::Host;
-use serde_json;
 use zdaemon::ZMsgExtended;
 
 pub struct TelemetryApi;
 
 impl TelemetryApi {
     pub fn get(sock: &mut ZSock, host: &mut Host, router_id: &[u8]) -> Result<()> {
-        let json = serde_json::to_string(host.data())?;
+        let json = host.data().to_string();
         let msg = ZMsg::new_ok()?;
         msg.pushstr("")?;
         msg.pushbytes(router_id)?;
