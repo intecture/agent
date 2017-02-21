@@ -49,6 +49,8 @@ fn main() {
 fn start() -> Result<()> {
     let signal = chan_signal::notify(&[Signal::INT, Signal::TERM]);
     let (parent, child) = try!(ZSys::create_pipe());
+    parent.set_linger(0);
+    parent.set_sndtimeo(Some(100));
 
     let config = try!(Config::search("intecture/agent.json", None));
     let server_cert = try!(ZCert::load(&config.server_cert));
