@@ -9,10 +9,14 @@
 extern crate chan;
 extern crate chan_signal;
 extern crate czmq;
+extern crate docopt;
 extern crate inapi;
 extern crate inauth_client;
 extern crate rustc_serialize;
 extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
 extern crate serde_json;
 #[cfg(test)]
 extern crate tempdir;
@@ -26,33 +30,65 @@ mod error;
 use chan_signal::Signal;
 use config::Config;
 use czmq::{ZCert, ZSock, SocketType, ZSys};
+use docopt::Docopt;
 use error::Result;
 use inauth_client::{CertType, ZapHandler};
-use std::env;
+use std::{env, fs};
+use std::io::Read;
+use std::path::Path;
 use std::process::exit;
 use std::thread::spawn;
-use zdaemon::{ConfigFile, Service};
+use zdaemon::Service;
 use zfilexfer::Server as FileServer;
 
+static USAGE: &'static str = "
+Intecture Agent.
+
+Usage:
+  inagent [(-c <path> | --config <path>)]
+  inagent (-h | --help)
+  inagent --version
+
+Options:
+  -c --config <path>    Path to agent.json, e.g. \"/usr/local/etc\"
+  -h --help             Show this screen.
+  --version             Print this script's version.
+";
+
+#[derive(Debug, RustcDecodable)]
+#[allow(non_snake_case)]
+struct Args {
+    flag_c: Option<String>,
+    flag_config: Option<String>,
+    flag_h: bool,
+    flag_help: bool,
+    flag_version: bool,
+}
+
 fn main() {
-    let mut args = env::args();
-    if args.nth(1).as_ref().map(|a| &**a) == Some("--version") {
+    let args: Args = Docopt::new(USAGE)
+        .and_then(|d| d.decode())
+        .unwrap_or_else(|e| e.exit());
+
+    if args.flag_version {
         println!(env!("CARGO_PKG_VERSION"));
         exit(0);
-    }
-    else if let Err(e) = start() {
-        println!("{}", e);
-        exit(1);
+    } else {
+        let config_path = if args.flag_c.is_some() { args.flag_c.as_ref() } else { args.flag_config.as_ref() };
+        if let Err(e) = start(config_path) {
+            println!("{}", e);
+            exit(1);
+        }
     }
 }
 
-fn start() -> Result<()> {
+fn start<P: AsRef<Path>>(path: Option<P>) -> Result<()> {
     let signal = chan_signal::notify(&[Signal::INT, Signal::TERM]);
     let (parent, child) = try!(ZSys::create_pipe());
     parent.set_linger(0);
     parent.set_sndtimeo(Some(100));
 
-    let config = try!(Config::search("intecture/agent.json", None));
+    let config = read_conf(path)?;
     let server_cert = try!(ZCert::load(&config.server_cert));
     let auth_cert = try!(ZCert::load(&config.auth_cert));
 
@@ -91,4 +127,28 @@ fn start() -> Result<()> {
     thread.join().unwrap();
 
     Ok(())
+}
+
+fn read_conf<P: AsRef<Path>>(path: Option<P>) -> Result<Config> {
+    if let Some(p) = path {
+        do_read_conf(p)
+    }
+    else if let Ok(p) = env::var("INAGENT_CONFIG_DIR") {
+        do_read_conf(p)
+    }
+    else if let Ok(c) = do_read_conf("/usr/local/etc/intecture") {
+        Ok(c)
+    } else {
+        do_read_conf("/etc/intecture")
+    }
+}
+
+fn do_read_conf<P: AsRef<Path>>(path: P) -> Result<Config> {
+    let mut path = path.as_ref().to_owned();
+    path.push("agent.json");
+
+    let mut fh = fs::File::open(&path)?;
+    let mut json = String::new();
+    fh.read_to_string(&mut json)?;
+    Ok(serde_json::from_str(&json)?)
 }

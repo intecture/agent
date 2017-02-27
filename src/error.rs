@@ -8,7 +8,6 @@
 
 use czmq;
 use inapi;
-use rustc_serialize::json;
 use serde_json;
 use std::{convert, error, fmt, io, result};
 use zdaemon;
@@ -21,7 +20,6 @@ pub enum Error {
     Czmq(czmq::Error),
     Inapi(inapi::Error),
     Io(io::Error),
-    JsonEncoder(json::EncoderError),
     MessageUtf8,
     SerdeJson(serde_json::Error),
     ZDaemon(zdaemon::Error),
@@ -34,7 +32,6 @@ impl fmt::Display for Error {
             Error::Czmq(ref e) => write!(f, "CZMQ error: {}", e),
             Error::Inapi(ref e) => write!(f, "Intecture API error: {}", e),
             Error::Io(ref e) => write!(f, "IO error: {}", e),
-            Error::JsonEncoder(ref e) => write!(f, "JSON encoder error: {}", e),
             Error::MessageUtf8 => write!(f, "Message is not UTF8 compatible"),
             Error::SerdeJson(ref e) => write!(f, "Serde JSON error: {}", e),
             Error::ZDaemon(ref e) => write!(f, "ZDaemon error: {}", e),
@@ -49,7 +46,6 @@ impl error::Error for Error {
             Error::Czmq(ref e) => e.description(),
             Error::Inapi(ref e) => e.description(),
             Error::Io(ref e) => e.description(),
-            Error::JsonEncoder(ref e) => e.description(),
             Error::MessageUtf8 => "Message is not UTF8 compatible",
             Error::SerdeJson(ref e) => e.description(),
             Error::ZDaemon(ref e) => e.description(),
@@ -73,12 +69,6 @@ impl convert::From<inapi::Error> for Error {
 impl convert::From<io::Error> for Error {
     fn from(err: io::Error) -> Error {
         Error::Io(err)
-    }
-}
-
-impl convert::From<json::EncoderError> for Error {
-    fn from(err: json::EncoderError) -> Error {
-        Error::JsonEncoder(err)
     }
 }
 
