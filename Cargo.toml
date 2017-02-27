@@ -23,7 +23,6 @@ intecture-auth = "0.1"
 rustc-serialize = "0.3"
 serde = "0.9"
 serde_derive = "0.9"
-#[macro_use]
 serde_json = "0.9"
 zdaemon = "0.0.2"
 zfilexfer = "0.0.2"
