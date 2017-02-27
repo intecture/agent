@@ -152,3 +152,36 @@ fn do_read_conf<P: AsRef<Path>>(path: P) -> Result<Config> {
     fh.read_to_string(&mut json)?;
     Ok(serde_json::from_str(&json)?)
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{env, fs};
+    use std::io::Write;
+    use std::path::PathBuf;
+    use super::read_conf;
+    use tempdir::TempDir;
+
+    #[test]
+    fn test_read_conf() {
+        let tmpdir = TempDir::new("test_read_conf").unwrap();
+        let mut path = tmpdir.path().to_owned();
+
+        path.push("agent.json");
+        let mut fh = fs::File::create(&path).unwrap();
+        fh.write_all(b"{
+            \"api_port\": 123,
+            \"server_cert\": \"\",
+            \"filexfer_port\": 123,
+            \"filexfer_threads\": 123,
+            \"auth_server\": \"\",
+            \"auth_update_port\": 123,
+            \"auth_cert\": \"\"
+        }").unwrap();
+        path.pop();
+
+        assert!(read_conf(Some(&path)).is_ok());
+        env::set_var("INAGENT_CONFIG_DIR", path.to_str().unwrap());
+        let none: Option<PathBuf> = None;
+        assert!(read_conf(none).is_ok());
+    }
+}
